@@ -1,6 +1,11 @@
 language: cpp
+
 compiler:
   - gcc
   - clang
-# Change this to your needs
+
+before_install:
+  - sudo apt-get install libboost-dev 
+  - sudo apt-get install llvm-3.5-dev
+
 script: pushd build && make
