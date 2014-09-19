@@ -105,8 +105,8 @@ namespace marklar {
 	void parseFunction(const string& str) {
 		cout << "parseFunction:" << endl;
 
-		auto rule = *(qi::lit("cat") [ ++qi::_val ] | qi::omit[qi::char_]);
-		qi::parse(str.begin(), str.end(), rule, count);
+		//auto rule = *(qi::lit("cat") [ ++qi::_val ] | qi::omit[qi::char_]);
+		//qi::parse(str.begin(), str.end(), rule, count);
 	}
 
 	double parseTest(const string& str) {

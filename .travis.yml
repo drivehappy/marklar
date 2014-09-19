@@ -1,11 +1,16 @@
 language: cpp
 
-compiler:
-  - gcc
-  - clang
+#compiler:
+#  - clang
 
 before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update
   - sudo apt-get install libboost-dev 
+  - sudo apt-get install g++-4.9
+
+  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key
+  - sudo apt-key add -
   - sudo apt-get install llvm-3.5-dev
 
 script: pushd build && make

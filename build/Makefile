@@ -1,4 +1,4 @@
-#CC 				:= g++-4.9
+CXX				:= g++-4.9
 CC_FLAGS 		:= -Wall -O0 -g -std=c++11 -I../src/ -I../src/lib/ -I/usr/include/llvm-3.5/ -I/usr/include/llvm-c-3.5/ -L/usr/lib/x86_64-linux-gnu -L/usr/lib/llvm-3.5/lib 
 LD_FLAGS 		:=  `llvm-config-3.5 --libs all` `llvm-config-3.5 --ldflags --system-libs` -lboost_program_options
 LD_FLAGS_TESTS	:= $(LD_FLAGS) -lgtest -lpthread
