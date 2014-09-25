@@ -104,7 +104,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 namespace parser {
 
 	template <typename Iterator>
-	struct marklar_grammar : qi::grammar<Iterator, base_expr_node()>
+	struct marklar_grammar : qi::grammar<Iterator, base_expr_node(), qi::space_type>
 	{
 		marklar_grammar() : marklar_grammar::base_type(start)
 		{
@@ -116,9 +116,9 @@ namespace parser {
 			baseNode %= funcExpr;
 
 			funcExpr %=
-				   "int "
+				   "int"
 				>> variable
-				>> "(){"
+				>> "()" >> "{"
 				//>> *decl
 	//			>> *basicExpr
 				>> "}"
@@ -142,18 +142,18 @@ namespace parser {
 			op %= qi::lit('+');
 		}
 
-		qi::rule<Iterator, base_expr_node()> start;
-		qi::rule<Iterator, base_expr_node()> baseNode;
+		qi::rule<Iterator, base_expr_node(), qi::space_type> start;
+		qi::rule<Iterator, base_expr_node(), qi::space_type> baseNode;
 
-		qi::rule<Iterator, func_expr()> funcExpr;
-		qi::rule<Iterator, decl_expr()> decl;
-		qi::rule<Iterator, operator_expr()> op_expr;
-		qi::rule<Iterator, basic_expr()> basicExpr;
+		qi::rule<Iterator, func_expr(), qi::space_type> funcExpr;
+		qi::rule<Iterator, decl_expr(), qi::space_type> decl;
+		qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
+		qi::rule<Iterator, basic_expr(), qi::space_type> basicExpr;
 
-		qi::rule<Iterator, string()> variable;
-		qi::rule<Iterator, string()> intLiteral;
-		qi::rule<Iterator, string()> value;
-		qi::rule<Iterator, string()> op;
+		qi::rule<Iterator, string(), qi::space_type> variable;
+		qi::rule<Iterator, string(), qi::space_type> intLiteral;
+		qi::rule<Iterator, string(), qi::space_type> value;
+		qi::rule<Iterator, string(), qi::space_type> op;
 
 	};
 
@@ -176,7 +176,7 @@ namespace marklar {
 
 		parser::base_expr_node root;
 		parser::marklar_grammar<string::const_iterator> p;
-		const bool r = qi::parse(str.begin(), str.end(), p, root);
+		const bool r = qi::phrase_parse(str.begin(), str.end(), p, qi::space, root);
 		if (!r) {
 			cout << "Parsing failed." << endl;
 			return;

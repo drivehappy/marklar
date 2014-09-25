@@ -7,7 +7,7 @@ using namespace marklar;
 
 TEST(ParserTest, BasicFunction) {
 	const auto testProgram =
-		"int main(){"
+		"int main() {\n"
 		"}";
 
 	parse(testProgram);
