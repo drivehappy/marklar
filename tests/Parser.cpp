@@ -5,6 +5,14 @@
 using namespace marklar;
 
 
+TEST(ParserTest, BasicFunction) {
+	const auto testProgram =
+		"int main(){"
+		"}";
+
+	parse(testProgram);
+}
+
 TEST(ParserTest, Dummy) {
 	//EXPECT_EQ(0, 1);
 
@@ -16,7 +24,7 @@ TEST(ParserTest, Dummy) {
 		"  return r;\n"
 		"}";
 
-	parseFunction(testProgram);
+	parse(testProgram);
 }
 
 TEST(ParserTest, Boost) {

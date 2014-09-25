@@ -2,79 +2,161 @@
 
 #include <regex>
 #include <string>
+#include <vector>
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
+#include <boost/spirit/include/phoenix_stl.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/variant/recursive_variant.hpp>
 
 // Debug
 #include <iostream>
+
 
 using namespace std;
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
+namespace fusion = boost::fusion;
 
-namespace {
 
+namespace parser {
 
-	/*
-	using qi::double_;
-	using qi::_1;
-	using qi::phrase_parse;
-	using ascii::space;
-	using phoenix::ref;
+	struct base_expr;
+	struct func_expr;
+	struct decl_expr;
+	struct operator_expr;
+	struct basic_expr;
+
+	typedef boost::variant<
+		boost::recursive_wrapper<base_expr>,
+		boost::recursive_wrapper<func_expr>,
+		boost::recursive_wrapper<decl_expr>,
+		boost::recursive_wrapper<operator_expr>,
+		boost::recursive_wrapper<basic_expr>,
+		string
+	> base_expr_node;
+
+	struct base_expr {
+		vector<base_expr_node> children;
+	};
+
+	struct func_expr {
+		string functionName;
+		vector<decl_expr> declarations;
+		//vector<base_expr_node> expressions;
+	};
+
+	struct decl_expr {
+		string declName;
+		string val;
+	};
+
+	struct operator_expr {
+		string valLHS;
+		string valRHS;
+		string op;
+	};
+
+	struct basic_expr {
+		base_expr_node expressionRHS;
+	};
+
+	
+}
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::base_expr,
+	(vector<parser::base_expr_node>, children)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::func_expr,
+	(string, functionName)
+	//(vector<parser::decl_expr>, declarations)
+	//(vector<parser::base_expr_node>, expressions)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::decl_expr,
+	(string, declName)
+	(string, val)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::operator_expr,
+	(string, valLHS)
+	(string, valRHS)
+	(string, op)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::basic_expr,
+	(parser::base_expr_node, expressionRHS)
+)
+
+namespace parser {
 
 	template <typename Iterator>
-	bool parse_numbers(Iterator first, Iterator last, double& result)
+	struct marklar_grammar : qi::grammar<Iterator, base_expr_node()>
 	{
-		bool r = phrase_parse(
-			first, 
-			last,
-			double_[ref(result) = _1] >> *(',' >> double_),
-			space
-		);
-
-		if (first != last) // fail if we did not get a full match
-			return false;
-
-		return r;
-	}
-	*/
-
-	/*
-	template <typename Iterator>
-	struct employee_parser : qi::grammar<Iterator, employee(), ascii::space_type>
-	{
-		employee_parser() : employee_parser::base_type(start)
+		marklar_grammar() : marklar_grammar::base_type(start)
 		{
-			using qi::int_;
-			using qi::lit;
-			using qi::double_;
-			using qi::string_;
-			using qi::lexeme;
-			using ascii::char_;
 
-			text %= lexeme['"' >> +(char_ - '"') >> '"'];
-
-			start %=
-				//lit("employee")
-				string_
-				>> '{'
-				>>  int_ >> ','
-				>>  quoted_string >> ','
-				>>  quoted_string >> ','
-				>>  double_
-				>>  '}'
+			start %= qi::eps
+				>> baseNode
 				;
+
+			baseNode %= funcExpr;
+
+			funcExpr %=
+				   "int "
+				>> variable
+				>> "(){"
+				//>> *decl
+	//			>> *basicExpr
+				>> "}"
+				;
+
+			decl %=
+				   "int "
+				>> variable
+				>> -(" = " >> value)
+				>> ";"
+				;
+
+			op_expr %= value >> op >> value;
+
+
+			basicExpr %= intLiteral || op_expr;
+
+			variable %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
+			intLiteral %= +qi::char_("0-9");
+			value %= (variable | intLiteral);
+			op %= qi::lit('+');
 		}
 
-		//qi::rule<Iterator, std::string(), ascii::space_type> quoted_string;
-		qi::rule<Iterator, employee(), ascii::space_type> start;
-		qi::rule<Iterator, std::string(), ascii::space_type> text;
+		qi::rule<Iterator, base_expr_node()> start;
+		qi::rule<Iterator, base_expr_node()> baseNode;
+
+		qi::rule<Iterator, func_expr()> funcExpr;
+		qi::rule<Iterator, decl_expr()> decl;
+		qi::rule<Iterator, operator_expr()> op_expr;
+		qi::rule<Iterator, basic_expr()> basicExpr;
+
+		qi::rule<Iterator, string()> variable;
+		qi::rule<Iterator, string()> intLiteral;
+		qi::rule<Iterator, string()> value;
+		qi::rule<Iterator, string()> op;
+
 	};
-	*/
+
 }
 
 namespace marklar {
@@ -92,21 +174,15 @@ namespace marklar {
 
 		cout << "Parsing: " << endl << str << endl;
 
-		const regex programRegex("(\\S+)");
-		auto words_begin = 
-        std::sregex_iterator(str.begin(), str.end(), programRegex);
-		auto words_end = std::sregex_iterator();
-	 
-		std::cout << "Found "
-				  << std::distance(words_begin, words_end)
-				  << " words\n";
-	}
+		parser::base_expr_node root;
+		parser::marklar_grammar<string::const_iterator> p;
+		const bool r = qi::parse(str.begin(), str.end(), p, root);
+		if (!r) {
+			cout << "Parsing failed." << endl;
+			return;
+		}
 
-	void parseFunction(const string& str) {
-		cout << "parseFunction:" << endl;
-
-		//auto rule = *(qi::lit("cat") [ ++qi::_val ] | qi::omit[qi::char_]);
-		//qi::parse(str.begin(), str.end(), rule, count);
+		cout << "Parse success" << endl;
 	}
 
 	double parseTest(const string& str) {
