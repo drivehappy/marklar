@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#define BOOST_SPIRIT_DEBUG 
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -32,14 +34,16 @@ namespace parser {
 	struct func_expr;
 	struct decl_expr;
 	struct operator_expr;
-	struct basic_expr;
+	struct call_expr;
+	struct return_expr;
 
 	typedef boost::variant<
 		boost::recursive_wrapper<base_expr>,
 		boost::recursive_wrapper<func_expr>,
 		boost::recursive_wrapper<decl_expr>,
 		boost::recursive_wrapper<operator_expr>,
-		boost::recursive_wrapper<basic_expr>,
+		boost::recursive_wrapper<call_expr>,
+		boost::recursive_wrapper<return_expr>,
 		std::string
 	> base_expr_node;
 
@@ -49,8 +53,10 @@ namespace parser {
 
 	struct func_expr {
 		std::string functionName;
+		std::vector<std::string> args;
 		std::vector<base_expr_node> declarations;
 		std::vector<base_expr_node> expressions;
+		base_expr_node retExpr;
 	};
 
 	struct decl_expr {
@@ -60,16 +66,16 @@ namespace parser {
 
 	struct operator_expr {
 		std::string valLHS;
-		std::string valRHS;
-		std::string op;
-	};
-
-	struct basic_expr {
-		base_expr_node expressionRHS;
+		base_expr_node valRHS;
 	};
 
 	struct return_expr {
 		base_expr_node ret;
+	};
+	
+	struct call_expr {
+		std::string funcName;
+		std::vector<std::string> values;
 	};
 	
 }
@@ -90,20 +96,16 @@ BOOST_FUSION_ADAPT_STRUCT(
 	parser::func_expr,
 
 	(std::string, functionName)
+	(std::vector<std::string>, args)
 	(std::vector<parser::base_expr_node>, declarations)
 	(std::vector<parser::base_expr_node>, expressions)
+	(parser::base_expr_node, retExpr)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::operator_expr,
 	(std::string, valLHS)
-	(std::string, valRHS)
-	(std::string, op)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-	parser::basic_expr,
-	(parser::base_expr_node, expressionRHS)
+	(parser::base_expr_node, valRHS)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -111,6 +113,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(parser::base_expr_node, ret)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::call_expr,
+	(std::string, funcName)
+	(std::vector<std::string>, values)
+)
 
 namespace parser {
 
@@ -119,31 +126,41 @@ namespace parser {
 	{
 		marklar_grammar() : marklar_grammar::base_type(start)
 		{
-			start %= funcExpr;
+			start %= rootNode;
 
-			baseNode %= funcExpr;
+			rootNode %= qi::eps >> +funcExpr;
 
 			funcExpr %=
 				  "int"
 				>> varName
-				>> '(' >> ')'
+				>> '(' >> *(varDef % ',') >> ')'
 				>> '{'
-				>> *decl
-				>> *baseNode
+				>> *varDecl
+				>> *baseExpr
 				>> -returnExpr
 				>> '}'
 				;
 
-			decl %=
+			varDef %=
 				  "int"
 				>> varName
+				;
+
+			varDecl %=
+				   varDef
 				>> -('=' >> (op_expr | value))
 				>> ';'
 				;
 
-			op_expr %= value >> op >> value;
+			op_expr %= value >> +(op >> value);
 
-			basicExpr %= intLiteral | op_expr;
+			baseExpr %= intLiteral | callExpr;
+
+			callExpr %=
+				   varName
+				>> '(' >> *(value % ',') >> ')'
+				>> ';'
+				;
 
 			returnExpr %=
 				   "return"
@@ -155,16 +172,26 @@ namespace parser {
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
 			op %= '+';
+
+			// Debugging
+			/*
+			BOOST_SPIRIT_DEBUG_NODE(funcExpr);
+			BOOST_SPIRIT_DEBUG_NODE(varDecl);
+			BOOST_SPIRIT_DEBUG_NODE(baseExpr);
+			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
+			*/
 		}
 
 		qi::rule<Iterator, base_expr_node(), qi::space_type> start;
-		qi::rule<Iterator, base_expr_node(), qi::space_type> baseNode;
+		qi::rule<Iterator, base_expr(), qi::space_type> rootNode;
 
 		qi::rule<Iterator, func_expr(), qi::space_type> funcExpr;
-		qi::rule<Iterator, decl_expr(), qi::space_type> decl;
+		qi::rule<Iterator, decl_expr(), qi::space_type> varDecl;
+		qi::rule<Iterator, string(), qi::space_type> varDef;
 		qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
-		qi::rule<Iterator, basic_expr(), qi::space_type> basicExpr;
+		qi::rule<Iterator, base_expr_node(), qi::space_type> baseExpr;
 		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
+		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
 
 		qi::rule<Iterator, std::string(), qi::space_type> varName;
 		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
