@@ -28,58 +28,6 @@ namespace phoenix = boost::phoenix;
 namespace fusion = boost::fusion;
 
 
-namespace parser {
-
-	struct base_expr;
-	struct func_expr;
-	struct decl_expr;
-	struct operator_expr;
-	struct call_expr;
-	struct return_expr;
-
-	typedef boost::variant<
-		boost::recursive_wrapper<base_expr>,
-		boost::recursive_wrapper<func_expr>,
-		boost::recursive_wrapper<decl_expr>,
-		boost::recursive_wrapper<operator_expr>,
-		boost::recursive_wrapper<call_expr>,
-		boost::recursive_wrapper<return_expr>,
-		std::string
-	> base_expr_node;
-
-	struct base_expr {
-		std::vector<base_expr_node> children;
-	};
-
-	struct func_expr {
-		std::string functionName;
-		std::vector<std::string> args;
-		std::vector<base_expr_node> declarations;
-		std::vector<base_expr_node> expressions;
-		base_expr_node retExpr;
-	};
-
-	struct decl_expr {
-		std::string declName;
-		base_expr_node val;
-	};
-
-	struct operator_expr {
-		std::string valLHS;
-		base_expr_node valRHS;
-	};
-
-	struct return_expr {
-		base_expr_node ret;
-	};
-	
-	struct call_expr {
-		std::string funcName;
-		std::vector<std::string> values;
-	};
-	
-}
-
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::base_expr,
@@ -119,6 +67,13 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(std::vector<std::string>, values)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::if_expr,
+	(parser::operator_expr, condition)
+	(std::vector<parser::base_expr_node>, thenBranch)
+	(std::vector<parser::base_expr_node>, elseBranch)
+)
+
 namespace parser {
 
 	template <typename Iterator>
@@ -154,7 +109,7 @@ namespace parser {
 
 			op_expr %= value >> +(op >> value);
 
-			baseExpr %= intLiteral | callExpr;
+			baseExpr %= intLiteral | callExpr | returnExpr | ifExpr;
 
 			callExpr %=
 				   varName
@@ -168,10 +123,20 @@ namespace parser {
 				>> ';'
 				;
 
+			ifExpr %=
+				   qi::lit("if")
+				>> '('
+				>> op_expr
+				>> ')' >> '{'
+				>> *baseExpr
+				>> '}'
+				>> -(qi::lit("else") >> '{' >> *baseExpr >> '}')
+				;
+
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
-			op %= '+';
+			op %= qi::char_('+') | '<';
 
 			// Debugging
 			/*
@@ -179,6 +144,7 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(varDecl);
 			BOOST_SPIRIT_DEBUG_NODE(baseExpr);
 			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
+			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
 			*/
 		}
 
@@ -192,6 +158,7 @@ namespace parser {
 		qi::rule<Iterator, base_expr_node(), qi::space_type> baseExpr;
 		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
 		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
+		qi::rule<Iterator, if_expr(), qi::space_type> ifExpr;
 
 		qi::rule<Iterator, std::string(), qi::space_type> varName;
 		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
@@ -203,12 +170,17 @@ namespace parser {
 
 namespace marklar {
 
-	bool parse(const std::string& str) {
-		parser::base_expr_node root;
+	bool parse(const std::string& str, parser::base_expr_node& root) {
 		parser::marklar_grammar<std::string::const_iterator> p;
 		const bool r = qi::phrase_parse(str.begin(), str.end(), p, qi::space, root);
 
 		return r;
+	}
+
+	bool parse(const std::string& str) {
+		parser::base_expr_node root;
+
+		return parse(str, root);
 	}
 
 }

@@ -65,8 +65,7 @@ TEST(ParserTest, FunctionReturn) {
 TEST(ParserTest, FunctionReturnComplex) {
 	const auto testProgram =
 		"int main() {"
-		//"  return a + b + c + 0 + 1 + d;"
-		"  return a + b;"
+		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -117,7 +116,7 @@ TEST(ParserTest, FunctionCall) {
 
 TEST(ParserTest, FunctionCallArgs) {
 	const auto testProgram =
-//		"int foo(int a) {}"
+		"int foo(int a) {}"
 		"int main() {"
 		"  foo(45);"
 		"}";
@@ -133,6 +132,27 @@ TEST(ParserTest, FunctionCallArgsComplex) {
 		"}"
 		"int main() {"
 		"  return foo(45);"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionIfStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  if (i < 4) {"
+		"  }"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionIfElseStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  if (i < 4) {"
+		"  } else {"
+		"  }"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
