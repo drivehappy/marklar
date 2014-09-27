@@ -45,12 +45,10 @@ namespace parser {
 
 	struct base_expr {
 		std::vector<base_expr_node> children;
-		qi::unused_type dummy;
 	};
 
 	struct func_expr {
 		std::string functionName;
-//		qi::unused_type dummy;
 		std::vector<base_expr_node> declarations;
 		std::vector<base_expr_node> expressions;
 	};
@@ -68,7 +66,6 @@ namespace parser {
 
 	struct basic_expr {
 		base_expr_node expressionRHS;
-		qi::unused_type dummy;
 	};
 	
 }
@@ -77,7 +74,6 @@ namespace parser {
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::base_expr,
 	(std::vector<parser::base_expr_node>, children)
-	(qi::unused_type, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -90,8 +86,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 	parser::func_expr,
 
 	(std::string, functionName)
-//	(qi::unused_type, dummy)
-
 	(std::vector<parser::base_expr_node>, declarations)
 	(std::vector<parser::base_expr_node>, expressions)
 )
@@ -106,7 +100,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::basic_expr,
 	(parser::base_expr_node, expressionRHS)
-	(qi::unused_type, dummy)
 )
 
 namespace parser {
@@ -118,29 +111,29 @@ namespace parser {
 		{
 
 			start %=
-				op_expr
+				funcExpr
 				;
 
 			baseNode %= funcExpr;
 
 			funcExpr %=
 				  "int"
-				> varName
-				> '(' > ')'
-				> '{'
-				> *baseNode
-				> *baseNode
-				> '}'
+				>> varName
+				>> '(' >> ')'
+				>> '{'
+				>> *baseNode
+				>> *baseNode
+				>> '}'
 				;
 
 			decl %=
 				  "int"
-				> varName
-				> -('=' > value)
-				> ';'
+				>> varName
+				>> -('=' >> value)
+				>> ';'
 				;
 
-			op_expr %= value > op > value;
+			op_expr %= value >> op >> value;
 
 			basicExpr %= intLiteral || op_expr;
 
@@ -162,7 +155,6 @@ namespace parser {
 		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
 		qi::rule<Iterator, std::string(), qi::space_type> value;
 		qi::rule<Iterator, std::string(), qi::space_type> op;
-
 	};
 
 }
