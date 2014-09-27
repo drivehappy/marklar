@@ -67,6 +67,10 @@ namespace parser {
 	struct basic_expr {
 		base_expr_node expressionRHS;
 	};
+
+	struct return_expr {
+		base_expr_node ret;
+	};
 	
 }
 
@@ -102,6 +106,12 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(parser::base_expr_node, expressionRHS)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::return_expr,
+	(parser::base_expr_node, ret)
+)
+
+
 namespace parser {
 
 	template <typename Iterator>
@@ -120,6 +130,7 @@ namespace parser {
 				>> '{'
 				>> *decl
 				>> *baseNode
+				>> -returnExpr
 				>> '}'
 				;
 
@@ -132,7 +143,13 @@ namespace parser {
 
 			op_expr %= value >> op >> value;
 
-			basicExpr %= intLiteral || op_expr;
+			basicExpr %= intLiteral | op_expr;
+
+			returnExpr %=
+				   "return"
+				>> (op_expr | value)
+				>> ';'
+				;
 
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
@@ -147,6 +164,7 @@ namespace parser {
 		qi::rule<Iterator, decl_expr(), qi::space_type> decl;
 		qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
 		qi::rule<Iterator, basic_expr(), qi::space_type> basicExpr;
+		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
 
 		qi::rule<Iterator, std::string(), qi::space_type> varName;
 		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
