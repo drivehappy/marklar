@@ -5,11 +5,7 @@
 
 namespace marklar {
 
-	//void parseFunction(const std::string& str);
-
-	void parse(const std::string& str);
-
-	double parseTest(const std::string& str);
+	bool parse(const std::string& str);
 
 }
 

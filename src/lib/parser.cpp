@@ -55,7 +55,7 @@ namespace parser {
 
 	struct decl_expr {
 		std::string declName;
-		std::string val;
+		base_expr_node val;
 	};
 
 	struct operator_expr {
@@ -79,7 +79,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::decl_expr,
 	(std::string, declName)
-	(std::string, val)
+	(parser::base_expr_node, val)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -109,10 +109,7 @@ namespace parser {
 	{
 		marklar_grammar() : marklar_grammar::base_type(start)
 		{
-
-			start %=
-				funcExpr
-				;
+			start %= funcExpr;
 
 			baseNode %= funcExpr;
 
@@ -121,7 +118,7 @@ namespace parser {
 				>> varName
 				>> '(' >> ')'
 				>> '{'
-				>> *baseNode
+				>> *decl
 				>> *baseNode
 				>> '}'
 				;
@@ -129,7 +126,7 @@ namespace parser {
 			decl %=
 				  "int"
 				>> varName
-				>> -('=' >> value)
+				>> -('=' >> (op_expr | value))
 				>> ';'
 				;
 
@@ -140,7 +137,7 @@ namespace parser {
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
-			op %= qi::lit('+');
+			op %= '+';
 		}
 
 		qi::rule<Iterator, base_expr_node(), qi::space_type> start;
@@ -161,38 +158,13 @@ namespace parser {
 
 namespace marklar {
 
-	void parse(const std::string& str) {
-		/*
-			int main() {
-				int i = 0;
-				int j = 0;
-				int r = i + j;
-
-				return r;
-			}
-		*/
-
-		cout << "Parsing: " << endl << str << endl;
-
+	bool parse(const std::string& str) {
 		parser::base_expr_node root;
 		parser::marklar_grammar<std::string::const_iterator> p;
 		const bool r = qi::phrase_parse(str.begin(), str.end(), p, qi::space, root);
-		//const bool r = qi::parse(str.begin(), str.end(), p, root);
-		if (!r) {
-			cout << "Parsing failed." << endl;
-			return;
-		}
 
-		cout << "Parse success" << endl;
+		return r;
 	}
 
-	double parseTest(const std::string& str) {
-		double result = 0.0;
-		/*
-		const auto r = parse_numbers(str.begin(), str.end(), result);
-		cout << "Parse numbers: " << r << endl;
-		*/
-		
-		return result;
-	}
 }
+

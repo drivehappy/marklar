@@ -7,27 +7,58 @@ using namespace marklar;
 
 TEST(ParserTest, BasicFunction) {
 	const auto testProgram =
-		"int main() {\n"
+		"int main() {"
 		"}";
 
-	parse(testProgram);
+	EXPECT_TRUE(parse(testProgram));
 }
 
-TEST(ParserTest, Dummy) {
-	//EXPECT_EQ(0, 1);
-
+TEST(ParserTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"int main() {\n"
-		"  int i = 0;\n"
-		"  int j = 0;\n"
-		"  int r = i + j;\n"
-		"  return r;\n"
+		"int main() {"
+		"  int i = 0;"
 		"}";
 
-	parse(testProgram);
+	EXPECT_TRUE(parse(testProgram));
 }
 
-TEST(ParserTest, Boost) {
-	//EXPECT_EQ(123.41, parseTest("123.4"));
+TEST(ParserTest, FunctionMultiDecl) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 0;"
+		"  int j = 0;"
+		"  int k = 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionDeclAssign) {
+	const auto testProgram =
+		"int main() {"
+		"  int r = 1 + 2;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionMultiDeclAssign) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 1 + 2;"
+		"  int j = i + 2;"
+		"  int k = i + j;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionReturn) {
+	const auto testProgram =
+		"int main() {"
+		"  return 1;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
 }
 
