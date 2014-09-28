@@ -44,7 +44,7 @@ namespace parser {
 
 	struct operator_expr {
 		std::string valLHS;
-		base_expr_node valRHS;
+		std::vector<std::string> op_and_valRHS;
 	};
 
 	struct return_expr {

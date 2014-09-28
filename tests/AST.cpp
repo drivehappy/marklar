@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <tuple>
 
 #include <boost/variant/get.hpp>
 
@@ -42,7 +43,9 @@ TEST(ASTTest, FunctionSingleDecl) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_TRUE(expr != nullptr);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF != nullptr);
 
 	// Check declarations
 	EXPECT_EQ(1, exprF->declarations.size());
@@ -53,7 +56,7 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 	string* declVal = boost::get<string>(&decl->val);
 	EXPECT_TRUE(declVal != nullptr);
-	EXPECT_EQ("0", *declVal);	
+	EXPECT_EQ("0", *declVal);
 }
 
 TEST(ASTTest, FunctionMultiDecl) {
@@ -95,14 +98,34 @@ TEST(ASTTest, FunctionMultiDecl) {
 	}
 }
 
-/*
 TEST(ASTTest, FunctionDeclAssign) {
 	const auto testProgram =
 		"int main() {"
 		"  int r = 1 + 2;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+
+	// Check declarations
+	EXPECT_EQ(1, exprF->declarations.size());
+	decl_expr* decl = boost::get<decl_expr>(&exprF->declarations[0]);
+	EXPECT_TRUE(decl != nullptr);
+
+	EXPECT_EQ("r", decl->declName);
+
+	operator_expr* opExpr = boost::get<operator_expr>(&decl->val);
+	EXPECT_TRUE(opExpr != nullptr);
+	EXPECT_EQ("1", opExpr->valLHS);
+
+	// Check decl value
+	EXPECT_EQ(2, opExpr->op_and_valRHS.size());
+
+	EXPECT_EQ("+", opExpr->op_and_valRHS[0]);
+	EXPECT_EQ("2", opExpr->op_and_valRHS[1]);
 }
 
 TEST(ASTTest, FunctionMultiDeclAssign) {
@@ -113,9 +136,43 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 		"  int k = i + j;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+
+	// Check declarations
+	EXPECT_EQ(3, exprF->declarations.size());
+	decl_expr* decl = boost::get<decl_expr>(&exprF->declarations[0]);
+	EXPECT_TRUE(decl != nullptr);
+
+	EXPECT_EQ("i", decl->declName);
+
+	const vector<tuple<string, string, string, string>> expectedNameVals = {
+		make_tuple("i", "1", "+", "2"),
+		make_tuple("j", "i", "+", "2"),
+		make_tuple("k", "i", "+", "j"),
+	};
+
+	int index = 0;
+	for (auto& funcDecl : exprF->declarations) {
+		// Check declarations
+		decl_expr* decl = boost::get<decl_expr>(&funcDecl);
+		EXPECT_TRUE(decl != nullptr);
+
+		const auto expectedValues = expectedNameVals[index];
+
+		EXPECT_EQ(get<0>(expectedValues), decl->declName);
+
+		operator_expr* opExpr = boost::get<operator_expr>(&decl->val);
+		EXPECT_TRUE(opExpr != nullptr);
+
+		index += 1;
+	}
 }
 
+/*
 TEST(ASTTest, FunctionReturn) {
 	const auto testProgram =
 		"int main() {"

@@ -53,7 +53,8 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::operator_expr,
 	(std::string, valLHS)
-	(parser::base_expr_node, valRHS)
+	(std::vector<std::string>, op)
+	(std::vector<std::string>, valRHS)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -108,6 +109,7 @@ namespace parser {
 				;
 
 			op_expr %= value >> +(op >> value);
+			//op_expr %= -(op) >> value >> *op_expr;
 
 			baseExpr %= intLiteral | callExpr | returnExpr | ifExpr;
 
