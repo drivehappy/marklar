@@ -43,12 +43,15 @@ namespace parser {
 		std::vector<base_expr_node> children;
 	};
 
+	struct return_expr {
+		base_expr_node ret;
+	};
+	
 	struct func_expr {
 		std::string functionName;
 		std::vector<std::string> args;
 		std::vector<base_expr_node> declarations;
 		std::vector<base_expr_node> expressions;
-		base_expr_node retExpr;
 	};
 
 	struct decl_expr {
@@ -61,10 +64,6 @@ namespace parser {
 		std::vector<std::string> op_and_valRHS;
 	};
 
-	struct return_expr {
-		base_expr_node ret;
-	};
-	
 	struct call_expr {
 		std::string funcName;
 		std::vector<std::string> values;

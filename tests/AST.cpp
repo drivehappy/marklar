@@ -188,16 +188,27 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 	}
 }
 
-/*
 TEST(ASTTest, FunctionReturn) {
 	const auto testProgram =
 		"int main() {"
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF != nullptr);
+
+	EXPECT_EQ(0, exprF->declarations.size());
+	EXPECT_EQ(1, exprF->expressions.size());
+
+	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
+	EXPECT_TRUE(exprR != nullptr);
 }
 
+/*
 TEST(ASTTest, FunctionReturnComplex) {
 	const auto testProgram =
 		"int main() {"
