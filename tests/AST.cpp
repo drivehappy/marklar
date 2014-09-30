@@ -54,9 +54,10 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 	EXPECT_EQ("i", decl->declName);
 
-	string* declVal = boost::get<string>(&decl->val);
-	EXPECT_TRUE(declVal != nullptr);
-	EXPECT_EQ("0", *declVal);
+	binary_op* opExpr = boost::get<binary_op>(&decl->val);
+	EXPECT_TRUE(opExpr != nullptr);
+
+	EXPECT_EQ(0, opExpr->operation.size());
 }
 
 TEST(ASTTest, FunctionMultiDecl) {
@@ -86,15 +87,19 @@ TEST(ASTTest, FunctionMultiDecl) {
 		decl_expr* decl = boost::get<decl_expr>(&funcDecl);
 		EXPECT_TRUE(decl != nullptr);
 
-		string* declVal = boost::get<string>(&decl->val);
-		EXPECT_TRUE(declVal != nullptr);
-
-
 		const auto itr = expectedNameVals.find(decl->declName);
 		EXPECT_TRUE(itr != expectedNameVals.end());
 
 		EXPECT_EQ(itr->first, decl->declName);
-		EXPECT_EQ(itr->second, *declVal);
+
+		//
+		binary_op* opExpr = boost::get<binary_op>(&decl->val);
+		EXPECT_TRUE(opExpr != nullptr);
+
+		EXPECT_EQ(0, opExpr->operation.size());
+
+		string* lhsVal = boost::get<string>(&opExpr->lhs);
+		EXPECT_EQ(itr->second, *lhsVal);
 	}
 }
 
@@ -117,15 +122,15 @@ TEST(ASTTest, FunctionDeclAssign) {
 
 	EXPECT_EQ("r", decl->declName);
 
-	operator_expr* opExpr = boost::get<operator_expr>(&decl->val);
+	binary_op* opExpr = boost::get<binary_op>(&decl->val);
 	EXPECT_TRUE(opExpr != nullptr);
-	EXPECT_EQ("1", opExpr->valLHS);
+	EXPECT_EQ(1, opExpr->operation.size());
 
 	// Check decl value
-	EXPECT_EQ(2, opExpr->op_and_valRHS.size());
+	EXPECT_EQ("+", opExpr->operation[0].op);
 
-	EXPECT_EQ("+", opExpr->op_and_valRHS[0]);
-	EXPECT_EQ("2", opExpr->op_and_valRHS[1]);
+	string* rhsVal = boost::get<string>(&opExpr->operation[0].rhs);
+	EXPECT_EQ("2", *rhsVal);
 }
 
 TEST(ASTTest, FunctionMultiDeclAssign) {
@@ -165,8 +170,19 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 
 		EXPECT_EQ(get<0>(expectedValues), decl->declName);
 
-		operator_expr* opExpr = boost::get<operator_expr>(&decl->val);
+		binary_op* opExpr = boost::get<binary_op>(&decl->val);
 		EXPECT_TRUE(opExpr != nullptr);
+
+		EXPECT_EQ(1, opExpr->operation.size());
+
+		string* lhsVal = boost::get<string>(&opExpr->lhs);
+		EXPECT_EQ(get<1>(expectedValues), *lhsVal);
+
+		// Check decl value
+		EXPECT_EQ(get<2>(expectedValues), opExpr->operation[0].op);
+
+		string* rhsVal = boost::get<string>(&opExpr->operation[0].rhs);
+		EXPECT_EQ(get<3>(expectedValues), *rhsVal);
 
 		index += 1;
 	}

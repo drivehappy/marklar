@@ -3,6 +3,7 @@
 #include <boost/variant/recursive_variant.hpp>
 
 #include <string>
+#include <vector>
 
 namespace parser {
 
@@ -13,6 +14,8 @@ namespace parser {
 	struct call_expr;
 	struct return_expr;
 	struct if_expr;
+	struct binary_op;
+	
 
 	typedef boost::variant<
 		boost::recursive_wrapper<base_expr>,
@@ -22,8 +25,19 @@ namespace parser {
 		boost::recursive_wrapper<call_expr>,
 		boost::recursive_wrapper<return_expr>,
 		boost::recursive_wrapper<if_expr>,
+		boost::recursive_wrapper<binary_op>,
 		std::string
 	> base_expr_node;
+
+	struct operation {
+		std::string op;
+		base_expr_node rhs;
+	};
+
+	struct binary_op {
+		base_expr_node lhs;
+		std::vector<parser::operation> operation;
+	};
 
 	struct base_expr {
 		std::vector<base_expr_node> children;
@@ -57,7 +71,7 @@ namespace parser {
 	};
 
 	struct if_expr {
-		operator_expr condition;
+		binary_op condition;
 		std::vector<base_expr_node> thenBranch;
 		std::vector<base_expr_node> elseBranch;
 	};

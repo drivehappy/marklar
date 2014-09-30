@@ -53,8 +53,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::operator_expr,
 	(std::string, valLHS)
-	(std::vector<std::string>, op)
-	(std::vector<std::string>, valRHS)
+	(std::vector<std::string>, op_and_valRHS)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -70,9 +69,21 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::if_expr,
-	(parser::operator_expr, condition)
+	(parser::binary_op, condition)
 	(std::vector<parser::base_expr_node>, thenBranch)
 	(std::vector<parser::base_expr_node>, elseBranch)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::operation,
+	(std::string, op)
+	(parser::base_expr_node, rhs)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::binary_op,
+	(parser::base_expr_node, lhs)
+	(std::vector<parser::operation>, operation)
 )
 
 namespace parser {
@@ -108,8 +119,19 @@ namespace parser {
 				>> ';'
 				;
 
-			op_expr %= value >> +(op >> value);
-			//op_expr %= -(op) >> value >> *op_expr;
+			op_expr %=
+				   factor
+				>> *(op >> factor);
+
+			factor %=
+				   qi::lit('(') >> op_expr >> ')'
+				|  value;
+
+			/*
+			//op_expr %= value >> +(op >> value);
+			op_expr %= -(op) >> value >> *op_expr;
+			//op_expr %= value >> *(op >> op_expr);
+			*/
 
 			baseExpr %= intLiteral | callExpr | returnExpr | ifExpr;
 
@@ -147,6 +169,7 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(baseExpr);
 			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
 			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
+			BOOST_SPIRIT_DEBUG_NODE(op_expr);
 			*/
 		}
 
@@ -156,12 +179,14 @@ namespace parser {
 		qi::rule<Iterator, func_expr(), qi::space_type> funcExpr;
 		qi::rule<Iterator, decl_expr(), qi::space_type> varDecl;
 		qi::rule<Iterator, string(), qi::space_type> varDef;
-		qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
+		//qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
+		qi::rule<Iterator, binary_op(), qi::space_type> op_expr;
 		qi::rule<Iterator, base_expr_node(), qi::space_type> baseExpr;
 		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
 		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
 		qi::rule<Iterator, if_expr(), qi::space_type> ifExpr;
 
+		qi::rule<Iterator, base_expr_node(), qi::space_type> factor;
 		qi::rule<Iterator, std::string(), qi::space_type> varName;
 		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
 		qi::rule<Iterator, std::string(), qi::space_type> value;
