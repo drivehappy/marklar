@@ -9,21 +9,9 @@
 using namespace std;
 namespace po = boost::program_options;
 
-/*
-def main() {
-	int i = 0;
-	int j = 1;
-
-	int r = i + j;
-
-	return r;
-}
-*/
-
-
 
 int main(int argc, char** argv) {
-	// Declare the supported options.
+	// Build the supported options
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
@@ -41,3 +29,4 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
