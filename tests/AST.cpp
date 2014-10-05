@@ -208,14 +208,24 @@ TEST(ASTTest, FunctionReturn) {
 	EXPECT_TRUE(exprR != nullptr);
 }
 
-/*
 TEST(ASTTest, FunctionReturnComplex) {
 	const auto testProgram =
 		"int main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF != nullptr);
+
+	EXPECT_EQ(0, exprF->declarations.size());
+	EXPECT_EQ(1, exprF->expressions.size());
+
+	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
+	EXPECT_TRUE(exprR != nullptr);
 }
 
 TEST(ASTTest, MultipleFunction) {
@@ -223,7 +233,19 @@ TEST(ASTTest, MultipleFunction) {
 		"int foo() {}"
 		"int main() {}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_EQ(2, expr->children.size());
+
+	func_expr* exprF_foo = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF_foo != nullptr);
+	EXPECT_EQ("foo", exprF_foo->functionName);
+
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	EXPECT_TRUE(exprF_main != nullptr);
+	EXPECT_EQ("main", exprF_main->functionName);
 }
 
 TEST(ASTTest, MultipleComplexFunction) {
@@ -240,7 +262,11 @@ TEST(ASTTest, MultipleComplexFunction) {
 		"  return 0 + 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_EQ(3, expr->children.size());
 }
 
 TEST(ASTTest, FunctionArgs) {
@@ -248,7 +274,18 @@ TEST(ASTTest, FunctionArgs) {
 		"int main(int a, int b) {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_TRUE(expr != nullptr);
+
+	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF != nullptr);
+
+	EXPECT_EQ(2, exprF->args.size());
+	EXPECT_EQ("a", exprF->args[0]);
+	EXPECT_EQ("b", exprF->args[1]);
 }
 
 TEST(ASTTest, FunctionCall) {
@@ -258,7 +295,24 @@ TEST(ASTTest, FunctionCall) {
 		"  foo();"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_TRUE(expr != nullptr);
+
+	func_expr* exprF_foo = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_TRUE(exprF_foo != nullptr);
+
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	EXPECT_TRUE(exprF_main != nullptr);
+	EXPECT_EQ(1, exprF_main->expressions.size());
+
+	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(callExpr != nullptr);
+
+	EXPECT_EQ("foo", callExpr->funcName);
+	EXPECT_EQ(0, callExpr->values.size());
 }
 
 TEST(ASTTest, FunctionCallArgs) {
@@ -268,9 +322,20 @@ TEST(ASTTest, FunctionCallArgs) {
 		"  foo(45);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(callExpr != nullptr);
+
+	EXPECT_EQ("foo", callExpr->funcName);
+	EXPECT_EQ(1, callExpr->values.size());
+	EXPECT_EQ("45", callExpr->values[0]);
 }
 
+/*
 TEST(ASTTest, FunctionCallArgsComplex) {
 	const auto testProgram =
 		"int bar(int a, int b) {}"
@@ -281,7 +346,17 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 		"  return foo(45);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(callExpr != nullptr);
+
+	EXPECT_EQ("foo", callExpr->funcName);
+	EXPECT_EQ(1, callExpr->values.size());
+	EXPECT_EQ("45", callExpr->values[0]);
 }
 
 TEST(ASTTest, FunctionIfStmt) {
