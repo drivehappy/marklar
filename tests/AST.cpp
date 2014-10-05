@@ -54,10 +54,9 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 	EXPECT_EQ("i", decl->declName);
 
-	binary_op* opExpr = boost::get<binary_op>(&decl->val);
-	EXPECT_TRUE(opExpr != nullptr);
-
-	EXPECT_EQ(0, opExpr->operation.size());
+	string* opVal = boost::get<string>(&decl->val);
+	EXPECT_TRUE(opVal != nullptr);
+	EXPECT_EQ("0", *opVal);
 }
 
 TEST(ASTTest, FunctionMultiDecl) {
@@ -92,13 +91,7 @@ TEST(ASTTest, FunctionMultiDecl) {
 
 		EXPECT_EQ(itr->first, decl->declName);
 
-		//
-		binary_op* opExpr = boost::get<binary_op>(&decl->val);
-		EXPECT_TRUE(opExpr != nullptr);
-
-		EXPECT_EQ(0, opExpr->operation.size());
-
-		string* lhsVal = boost::get<string>(&opExpr->lhs);
+		string* lhsVal = boost::get<string>(&decl->val);
 		EXPECT_EQ(itr->second, *lhsVal);
 	}
 }
@@ -206,6 +199,10 @@ TEST(ASTTest, FunctionReturn) {
 
 	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
 	EXPECT_TRUE(exprR != nullptr);
+
+	string* exprRval = boost::get<string>(&exprR->ret);
+	EXPECT_TRUE(exprRval != nullptr);
+	EXPECT_EQ("1", *exprRval);
 }
 
 TEST(ASTTest, FunctionReturnComplex) {

@@ -120,7 +120,7 @@ namespace parser {
 
 			op_expr %=
 				   factor
-				>> *(op >> factor);
+				>> +(op >> factor);
 
 			factor %=
 				   qi::lit('(') >> op_expr >> ')'
@@ -159,12 +159,18 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(funcExpr);
 			BOOST_SPIRIT_DEBUG_NODE(varDecl);
 			BOOST_SPIRIT_DEBUG_NODE(baseExpr);
-			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
 			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
 			BOOST_SPIRIT_DEBUG_NODE(op_expr);
 			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
 			BOOST_SPIRIT_DEBUG_NODE(callExpr);
 			BOOST_SPIRIT_DEBUG_NODE(op);
+			*/
+
+			/*
+			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
+			BOOST_SPIRIT_DEBUG_NODE(op_expr);
+			BOOST_SPIRIT_DEBUG_NODE(callExpr);
+			BOOST_SPIRIT_DEBUG_NODE(value);
 			*/
 		}
 

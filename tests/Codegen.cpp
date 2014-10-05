@@ -41,7 +41,7 @@ namespace {
 
 }
 
-TEST(Codegen, BasicFunction) {
+TEST(CodegenTest, BasicFunction) {
 	const auto testProgram =
 		"int main() {"
 		"}";
@@ -49,9 +49,40 @@ TEST(Codegen, BasicFunction) {
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
-	// Begin the code generation using LLVM and our AST
 	auto module = codegenTest(root);
-
 	EXPECT_TRUE(verifyModule(*module));
 }
  
+TEST(CodegenTest, FunctionSingleDecl) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 0;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	auto module = codegenTest(root);
+	EXPECT_TRUE(verifyModule(*module));
+
+	module->dump();
+}
+ 
+TEST(CodegenTest, FunctionSingleDeclReturn) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 0;"
+		"  return i;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	auto module = codegenTest(root);
+	EXPECT_TRUE(verifyModule(*module));
+
+	module->dump();
+}
+
+
+

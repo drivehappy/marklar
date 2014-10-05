@@ -18,11 +18,13 @@ using namespace parser;
 using namespace llvm;
 
 
-void ast_codegen::operator()(const std::string& expr) {
-
+void ast_codegen::operator()(const std::string& val) {
+	std::cerr << "Generating code for string \"" << val << "\"" << std::endl;
 }
 
 void ast_codegen::operator()(const parser::base_expr& expr) {
+	std::cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << std::endl;
+
 	//assert(expr);
 
 	/*
@@ -69,7 +71,7 @@ void ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Visit expressions inside the function node
 	for (auto& itrExpr : func.expressions) {
-
+		boost::apply_visitor(*this, itrExpr);
 	}
 
 	// LLVM sanity check
@@ -78,14 +80,19 @@ void ast_codegen::operator()(const parser::func_expr& func) {
 
 void ast_codegen::operator()(const parser::decl_expr& decl) {
 	std::cerr << "Generating code for declaration \"" << decl.declName << "\"" << std::endl;
+
+	boost::apply_visitor(*this, decl.val);
 }
 
 void ast_codegen::operator()(const parser::operator_expr& expr) {
+	std::cerr << "Generating code for operator" << std::endl;
 
 }
 
-void ast_codegen::operator()(const parser::return_expr& expr) {
-
+void ast_codegen::operator()(const parser::return_expr& exprRet) {
+	std::cerr << "Generating code for return:" << std::endl;
+	
+	boost::apply_visitor(*this, exprRet.ret);
 }
 
 void ast_codegen::operator()(const parser::call_expr& expr) {
