@@ -35,9 +35,8 @@ TEST(Codegen, BasicFunction) {
 
 	// Codegen for each expression we've found in the root AST
 	base_expr* expr = boost::get<base_expr>(&root);
-	//for (auto& itr : expr->children) {
-	for (size_t i = 0; i < expr->children.size(); ++i) {
-		boost::apply_visitor(codeGenerator, expr->children[i]);
+	for (auto& itr : expr->children) {
+		boost::apply_visitor(codeGenerator, itr);
 	}
 
 	module->dump();
