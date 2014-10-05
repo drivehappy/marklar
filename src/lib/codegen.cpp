@@ -33,7 +33,7 @@ void ast_codegen::operator()(const parser::base_expr& expr) {
 }
 
 void ast_codegen::operator()(const parser::func_expr& func) {
-	//std::cerr << "Codegen: func_expr" << std::endl;
+	std::cerr << "Generating code for Function \"" << func.functionName << "\"" << std::endl;
 
 	Function *F = nullptr;
 	std::vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
@@ -56,11 +56,28 @@ void ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Add function arguments
 	Function::arg_iterator argItr = F->arg_begin();
-	
+	for (auto& argStr : func.args) {
+		argItr->setName(argStr);
+
+		m_symbolTable[argStr] = argItr;
+	}
+
+	// Visit declarations inside the function node
+	for (auto& itrDecl : func.declarations) {
+		boost::apply_visitor(*this, itrDecl);
+	}
+
+	// Visit expressions inside the function node
+	for (auto& itrExpr : func.expressions) {
+
+	}
+
+	// LLVM sanity check
+	verifyFunction(*F);
 }
 
-void ast_codegen::operator()(const parser::decl_expr& expr) {
-
+void ast_codegen::operator()(const parser::decl_expr& decl) {
+	std::cerr << "Generating code for declaration \"" << decl.declName << "\"" << std::endl;
 }
 
 void ast_codegen::operator()(const parser::operator_expr& expr) {
