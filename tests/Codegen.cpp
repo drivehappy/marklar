@@ -24,17 +24,23 @@ TEST(Codegen, BasicFunction) {
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
-	base_expr* expr = boost::get<base_expr>(&root);
-	ast_codegen codeGenerator;
-
 	// Begin the code generation using LLVM and our AST
 	LLVMContext &context = getGlobalContext();
 	Module * module = new Module("Marklar LLVM Test", context);
 	IRBuilder<> builder(getGlobalContext());
 
+	ast_codegen codeGenerator(module, builder);
+
 	module->dump();
-	codeGenerator(module, builder, expr);
+
+	// Codegen for each expression we've found in the root AST
+	base_expr* expr = boost::get<base_expr>(&root);
+	//for (auto& itr : expr->children) {
+	for (size_t i = 0; i < expr->children.size(); ++i) {
+		boost::apply_visitor(codeGenerator, expr->children[i]);
+	}
+
 	module->dump();
 
 }
-
+ 
