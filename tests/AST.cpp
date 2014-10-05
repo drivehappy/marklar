@@ -335,7 +335,6 @@ TEST(ASTTest, FunctionCallArgs) {
 	EXPECT_EQ("45", callExpr->values[0]);
 }
 
-/*
 TEST(ASTTest, FunctionCallArgsComplex) {
 	const auto testProgram =
 		"int bar(int a, int b) {}"
@@ -351,12 +350,17 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
+	
+	return_expr* exprR = boost::get<return_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprR != nullptr);
+
+	call_expr* callExpr = boost::get<call_expr>(&exprR->ret);
 	EXPECT_TRUE(callExpr != nullptr);
 
-	EXPECT_EQ("foo", callExpr->funcName);
-	EXPECT_EQ(1, callExpr->values.size());
-	EXPECT_EQ("45", callExpr->values[0]);
+	EXPECT_EQ("bar", callExpr->funcName);
+	EXPECT_EQ(2, callExpr->values.size());
+	EXPECT_EQ("a", callExpr->values[0]);
+	EXPECT_EQ("5", callExpr->values[1]);
 }
 
 TEST(ASTTest, FunctionIfStmt) {
@@ -366,18 +370,48 @@ TEST(ASTTest, FunctionIfStmt) {
 		"  }"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
+
+	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprIf != nullptr);
+
+	// Check the condition
+	string* exprIfOpLhs = boost::get<string>(&exprIf->condition.lhs);
+	EXPECT_TRUE(exprIfOpLhs != nullptr);
+	EXPECT_EQ("i", *exprIfOpLhs);
+
+	EXPECT_EQ(1, exprIf->condition.operation.size());
+	EXPECT_EQ("<", exprIf->condition.operation[0].op);
+
+	string* exprIfOpRhs = boost::get<string>(&exprIf->condition.operation[0].rhs);
+	EXPECT_TRUE(exprIfOpRhs != nullptr);
+	EXPECT_EQ("4", *exprIfOpRhs);
 }
 
 TEST(ASTTest, FunctionIfElseStmt) {
 	const auto testProgram =
 		"int main() {"
 		"  if (i < 4) {"
+		"    int j = 0;"
 		"  } else {"
+		"    int k = 0;"
 		"  }"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
+
+	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprIf != nullptr);
+
+	EXPECT_EQ(1, exprIf->thenBranch.size());
+	EXPECT_EQ(1, exprIf->elseBranch.size());
 }
-*/
 

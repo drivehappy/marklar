@@ -126,23 +126,16 @@ namespace parser {
 				   qi::lit('(') >> op_expr >> ')'
 				|  value;
 
-			/*
-			//op_expr %= value >> +(op >> value);
-			op_expr %= -(op) >> value >> *op_expr;
-			//op_expr %= value >> *(op >> op_expr);
-			*/
-
-			baseExpr %= intLiteral | callExpr | returnExpr | ifExpr;
+			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl;
 
 			callExpr %=
 				   varName
 				>> '(' >> *(value % ',') >> ')'
-				>> ';'
 				;
 
 			returnExpr %=
 				   "return"
-				>> (op_expr | value)
+				>> (callExpr | op_expr | value)
 				>> ';'
 				;
 
@@ -159,7 +152,7 @@ namespace parser {
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
-			op %= qi::char_('+') | '<';
+			op %= qi::char_("+<");
 
 			// Debugging
 			/*
@@ -169,6 +162,9 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
 			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
 			BOOST_SPIRIT_DEBUG_NODE(op_expr);
+			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
+			BOOST_SPIRIT_DEBUG_NODE(callExpr);
+			BOOST_SPIRIT_DEBUG_NODE(op);
 			*/
 		}
 
