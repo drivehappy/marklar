@@ -40,6 +40,5 @@ TEST(Codegen, BasicFunction) {
 	}
 
 	module->dump();
-
 }
  
