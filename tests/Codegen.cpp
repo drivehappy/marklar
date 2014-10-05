@@ -49,8 +49,11 @@ TEST(CodegenTest, BasicFunction) {
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
 	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module));
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDecl) {
@@ -62,8 +65,11 @@ TEST(CodegenTest, FunctionSingleDecl) {
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
 	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module));
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 
 	module->dump();
 }
@@ -78,8 +84,11 @@ TEST(CodegenTest, FunctionSingleDeclReturn) {
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
 	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module));
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 
 	module->dump();
 }

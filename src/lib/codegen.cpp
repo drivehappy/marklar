@@ -1,5 +1,6 @@
 #include "codegen.h"
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -16,14 +17,49 @@ using namespace marklar;
 using namespace parser;
 
 using namespace llvm;
+using namespace std;
 
 
-void ast_codegen::operator()(const std::string& val) {
-	std::cerr << "Generating code for string \"" << val << "\"" << std::endl;
+namespace {
+	bool is_number(const string& s) {
+		return !s.empty() && find_if(s.begin(),
+			s.end(), [](char c) { return !isdigit(c); }) == s.end();
+	}
 }
 
-void ast_codegen::operator()(const parser::base_expr& expr) {
-	std::cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << std::endl;
+
+Value* ast_codegen::operator()(const string& val) {
+	cerr << "Generating code for string \"" << val << "\"" << endl;
+
+	Value *retVal = nullptr;
+
+	map<string, Value*>::iterator itr = m_symbolTable.find(val);
+	if (itr != m_symbolTable.end()) {
+		Value *localVar = itr->second;
+		retVal = m_builder.CreateLoad(localVar);
+
+		//return m_builder.CreateRet(retVal);
+	} else if (is_number(val)) {
+		APInt vInt(32, stoi(val));
+		retVal = ConstantInt::get(getGlobalContext(), vInt);
+		
+		//return m_builder.CreateRet(v);
+	} else {
+		cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
+		cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
+
+		for (const auto& kv : m_symbolTable) {
+			cerr  << "    Key: " << kv.first << ", Value: " << kv.second << endl;
+		}
+
+		cerr << endl;
+	}
+
+	return retVal;
+}
+
+Value* ast_codegen::operator()(const parser::base_expr& expr) {
+	cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << endl;
 
 	//assert(expr);
 
@@ -32,13 +68,15 @@ void ast_codegen::operator()(const parser::base_expr& expr) {
 		boost::apply_visitor(ast_codegen(m_module, m_builder), &itr));
 	}
 	*/
+
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::func_expr& func) {
-	std::cerr << "Generating code for Function \"" << func.functionName << "\"" << std::endl;
+Value* ast_codegen::operator()(const parser::func_expr& func) {
+	cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
-	std::vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
+	vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
 
 	// Determine if this function name has been defined yet
 	auto itr = m_symbolTable.find(func.functionName);
@@ -76,34 +114,124 @@ void ast_codegen::operator()(const parser::func_expr& func) {
 
 	// LLVM sanity check
 	verifyFunction(*F);
+
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::decl_expr& decl) {
-	std::cerr << "Generating code for declaration \"" << decl.declName << "\"" << std::endl;
+Value* ast_codegen::operator()(const parser::decl_expr& decl) {
+	cerr << "Generating code for declaration \"" << decl.declName << "\"" << endl;
 
-	boost::apply_visitor(*this, decl.val);
+	Value* var = nullptr;
+
+	map<string, Value*>::const_iterator itr = m_symbolTable.find(decl.declName);
+	if (itr == m_symbolTable.end()) {
+		cerr << "  Variable referenced for first time: " << decl.declName << endl;
+
+		BasicBlock *bb = m_builder.GetInsertBlock();
+		AllocaInst *Alloca = nullptr;
+
+		// If there is no basic block it indicates it might be at the global-level
+		if (bb) {
+			Function *TheFunction = bb->getParent();
+			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, decl.declName.c_str());
+			//Alloca->getType()->dump();
+
+			m_symbolTable[decl.declName] = Alloca;
+		} else {
+			// Check if the function was already declared, if not then build it
+			auto itr = m_symbolTable.find(decl.declName);
+			if (itr == m_symbolTable.end()) {
+				// Assume for now this has no arguments
+				vector<Type*> args(0, Type::getInt32Ty(getGlobalContext()));
+
+				FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
+				Function *F = Function::Create(FT, Function::ExternalLinkage, decl.declName, m_module);
+
+				// Add this function to the symbol table
+				m_symbolTable[decl.declName] = F;
+			}
+		}
+
+		var = Alloca;
+	} else {
+		// Use the variable itself
+		var = itr->second;
+	}
+
+	Value* const exprRhs = boost::apply_visitor(*this, decl.val);
+	if (exprRhs) {
+		// Don't just obtain the variable from codegen, since that produces a load...
+		// instead just look it up directly
+		const auto itr = m_symbolTable.find(decl.declName);
+		if (itr != m_symbolTable.end()) {
+			if (exprRhs->getType()->isPointerTy()) {
+				Value *varLhs = m_builder.CreateLoad(exprRhs);
+				m_builder.CreateStore(varLhs, itr->second);
+			} else {
+				m_builder.CreateStore(exprRhs, itr->second);
+			}
+		} else {
+			cout << "ERROR: Could not find variable: " << decl.declName << endl;
+			return nullptr;
+		}
+	}
+
+	return var;
 }
 
-void ast_codegen::operator()(const parser::operator_expr& expr) {
-	std::cerr << "Generating code for operator" << std::endl;
+Value* ast_codegen::operator()(const parser::operator_expr& expr) {
+	cerr << "Generating code for operator" << endl;
 
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::return_expr& exprRet) {
-	std::cerr << "Generating code for return:" << std::endl;
+Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
+	cerr << "Generating code for return:" << endl;
 	
-	boost::apply_visitor(*this, exprRet.ret);
+	Value* v = boost::apply_visitor(*this, exprRet.ret);
+
+	return m_builder.CreateRet(v);
+
+	/*
+	string* retVar = boost::get<string>(&exprRet.ret);
+	assert(retVar);
+	const string returnVar = *retVar;
+
+	// Build the return here
+	map<string, Value*>::iterator itr = m_symbolTable.find(returnVar);
+	if (itr != m_symbolTable.end()) {
+		Value *localVar = itr->second;
+		Value *retVal = builder.CreateLoad(localVar);
+		return builder.CreateRet(retVal);
+	} else if (is_number(returnVar)) {
+		// If string is a constant:
+		APInt vInt(32, atoi(getData().c_str()));
+		Value *v = ConstantInt::get(getGlobalContext(), vInt);
+		
+		return builder.CreateRet(v);
+	} else {
+		printf("ERROR: Could not find symbol: %s\n", mReturnExpr->data.c_str());
+		printf("  SymbolTable size: %u\n", ASTHelper::symbolTable.size());
+
+		for (const auto kv : ASTHelper::symbolTable) {
+			printf("    Key: %s, Value: %p\n", kv.first.c_str(), kv.second);
+		}
+	}
+	*/
+
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::call_expr& expr) {
-
+Value* ast_codegen::operator()(const parser::call_expr& expr) {
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::if_expr& expr) {
-
+Value* ast_codegen::operator()(const parser::if_expr& expr) {
+	return nullptr;
 }
 
-void ast_codegen::operator()(const parser::binary_op& expr) {
-
+Value* ast_codegen::operator()(const parser::binary_op& expr) {
+	return nullptr;
 }
 

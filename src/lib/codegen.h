@@ -13,21 +13,21 @@
 
 namespace marklar {
 
-	class ast_codegen : public boost::static_visitor<> {
+	class ast_codegen : public boost::static_visitor<llvm::Value*> {
 	public:
 		ast_codegen(llvm::Module* m, llvm::IRBuilder<>& b)
 		: m_module(m), m_builder(b)
 		{}
 
-		void operator()(const parser::base_expr& expr);
-		void operator()(const std::string& expr);
-		void operator()(const parser::func_expr& expr);
-		void operator()(const parser::decl_expr& expr);
-		void operator()(const parser::operator_expr& expr);
-		void operator()(const parser::return_expr& expr);
-		void operator()(const parser::call_expr& expr);
-		void operator()(const parser::if_expr& expr);
-		void operator()(const parser::binary_op& expr);
+		llvm::Value* operator()(const parser::base_expr& expr);
+		llvm::Value* operator()(const std::string& expr);
+		llvm::Value* operator()(const parser::func_expr& expr);
+		llvm::Value* operator()(const parser::decl_expr& expr);
+		llvm::Value* operator()(const parser::operator_expr& expr);
+		llvm::Value* operator()(const parser::return_expr& expr);
+		llvm::Value* operator()(const parser::call_expr& expr);
+		llvm::Value* operator()(const parser::if_expr& expr);
+		llvm::Value* operator()(const parser::binary_op& expr);
 
 	private:
 		llvm::Module* m_module;
