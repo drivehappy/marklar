@@ -52,9 +52,8 @@ TEST(CodegenTest, BasicFunction) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
-	// We expect verifyModule to fail (returns true), since we don't have a return
 	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDecl) {
@@ -69,9 +68,8 @@ TEST(CodegenTest, FunctionSingleDecl) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
-	// We expect verifyModule to fail (returns true), since we don't have a return
 	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDeclReturn) {

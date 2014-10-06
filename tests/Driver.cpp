@@ -208,4 +208,27 @@ TEST(DriverTest, FunctionCall) {
 	EXPECT_EQ(4, runExecutable(g_outputExe + " arg1 arg2"));
 }
 
+TEST(DriverTest, FunctionIfStmtReturn) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 3;"
+		"  int b = 4;"
+		"  if (a < b) {"
+		"    return 1;"
+		"  } else {"
+		"    return 0;"
+		"  }"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
+
 
