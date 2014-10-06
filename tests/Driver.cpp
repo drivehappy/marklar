@@ -290,7 +290,6 @@ TEST(DriverTest, OperatorLessThan) {
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-
 TEST(DriverTest, OperatorGreaterThan) {
 	const auto testProgram =
 		"int main() {"
@@ -310,6 +309,22 @@ TEST(DriverTest, OperatorGreaterThan) {
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, OperatorEqual) {
+	const auto testProgram =
+		"int main() {"
+		"  if (4 == 4) {"
+		"    return 1;"
+		"  }"
+		"  return 2;"
+		"}";
 
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
 
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
 

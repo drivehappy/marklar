@@ -31,7 +31,7 @@ namespace {
 
 
 Value* ast_codegen::operator()(const string& val) {
-	cerr << "Generating code for string \"" << val << "\"" << endl;
+	//cerr << "Generating code for string \"" << val << "\"" << endl;
 
 	Value *retVal = nullptr;
 
@@ -256,7 +256,7 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
-	cerr << "Generating code for call_expr:" << endl;
+	//cerr << "Generating code for call_expr:" << endl;
 
 	const string& callFuncName = expr.funcName;
 	Function *calleeF = m_module->getFunction(callFuncName);
@@ -286,7 +286,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::if_expr& expr) {
-	cerr << "Generating code for ifExpr:" << endl;
+	//cerr << "Generating code for ifExpr:" << endl;
 
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 	assert(TheFunction);
@@ -362,13 +362,14 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::binary_op& op) {
-	cerr << "Generating code for binary_op:" << endl;
+	//cerr << "Generating code for binary_op:" << endl;
 
 	// Mapping of operator to LLVM creation calls
 	const map<string, std::function<Value*(Value*, Value*)>> ops = {
-		{ "+", bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
-		{ "<", bind(&IRBuilder<>::CreateICmpSLT, m_builder, _1, _2, "cmp") },
-		{ ">", bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
+		{ "+",  bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
+		{ "<",  bind(&IRBuilder<>::CreateICmpSLT, m_builder, _1, _2, "cmp") },
+		{ ">",  bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
+		{ "==", bind(&IRBuilder<>::CreateICmpEQ,  m_builder, _1, _2, "cmp") },
 	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);
@@ -381,6 +382,7 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 
 		const auto& itr2 = ops.find(itr.op);
 		if (itr2 == ops.end()) {
+			cerr << "Unknown operator: \"" << itr.op << "\"" << endl;
 			assert(false && "Unsupported operator");
 			return nullptr;
 		}

@@ -243,4 +243,22 @@ TEST(CodegenTest, OperatorGreaterThan) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, OperatorEqual) {
+	const auto testProgram =
+		"int main() {"
+		"  if (4 == 4) {"
+		"    return 1;"
+		"  }"
+		"  return 2;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
 
