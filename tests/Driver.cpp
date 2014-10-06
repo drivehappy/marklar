@@ -165,3 +165,23 @@ TEST(DriverTest, MultipleFunction) {
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, FunctionUseArgs) {
+	const auto testProgram =
+		"int main(int a) {"
+		"  return a;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+	EXPECT_EQ(2, runExecutable(g_outputExe + " arg1"));
+	EXPECT_EQ(3, runExecutable(g_outputExe + " arg1 arg2"));
+}
+
+
