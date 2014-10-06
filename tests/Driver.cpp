@@ -15,6 +15,7 @@
 using namespace marklar;
 using namespace std;
 
+// Unit test helpers
 namespace {
 
 	const string g_outputBitCode = "output.bc";
@@ -27,6 +28,21 @@ namespace {
 		"output.o",
 	};
 
+	void cleanupFiles() {
+		for (auto& itr : g_cleanupFiles) {
+			boost::filesystem::remove(itr);
+		}
+	}
+
+	int runExecutable(const string& exe) {
+		const int r = system(("./" + exe).c_str());
+		if (r == -1) {
+			return -1;
+		}
+
+		return WEXITSTATUS(r);
+	}
+
 }
 
 
@@ -38,16 +54,12 @@ TEST(DriverTest, BasicFunction) {
 
 	// Cleanup generated intermediate and executable files
 	BOOST_SCOPE_EXIT(void) {
-		for (auto& itr : g_cleanupFiles) {
-			boost::filesystem::remove(itr);
-		}
+		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
 	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
 	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
 
-	const int r = system(("./" + g_outputExe).c_str());
-	EXPECT_NE(-1, r);
-	EXPECT_EQ(3, WEXITSTATUS(r));
+	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
 
