@@ -207,9 +207,17 @@ Value* ast_codegen::operator()(const parser::operator_expr& expr) {
 Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	//cerr << "Generating code for return:" << endl;
 	
+	// We can't generate a CreateRet in-place here since it might be
+	// within an if-else, LLVM doesn't allow terminators in the branches
+	// Therefore, just reference the return value on the stack we setup
+	// when the function was created - we should only be writing to this once
 	Value* const retVal = m_symbolTable["__retval__"];
 	assert(retVal);
 	
+	if (m_returnGenerated) {
+		return retVal;
+	}
+
 	Value* const v = boost::apply_visitor(*this, exprRet.ret);
 	assert(v);
 
@@ -219,16 +227,9 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	// This should be a pointer type, the function would have created this
 	assert(retVal->getType()->isPointerTy());
 
+	m_returnGenerated = true;
+
 	return n;
-
-	//return m_builder.CreateRet(loadRetVal);
-
-	/*
-	Value* const v = boost::apply_visitor(*this, exprRet.ret);
-	assert(v);
-
-	return m_builder.CreateRet(v);
-	*/
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
@@ -283,7 +284,8 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 	Value* ElseV = nullptr;
 
 	// Build the 'then' branch code
-	if (expr.thenBranch.size() > 0) {
+	//if (expr.thenBranch.size() > 0) {
+	{
 		m_builder.SetInsertPoint(ThenBB);
 
 		// Created a new visitor, this allows scoping so our symbol table
@@ -295,12 +297,16 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 			assert(ThenV);
 		}
 
+		// Small hack: Update our return flag if the 'then' branch created one
+		m_returnGenerated |= symbolVisitor.m_returnGenerated;
+
 		m_builder.CreateBr(MergeBB);
 		ThenBB = m_builder.GetInsertBlock();
 	}
 
 	// Build the 'else' branch code
-	if (expr.elseBranch.size() > 0) {
+	//if (expr.elseBranch.size() > 0) {
+	{
 		TheFunction->getBasicBlockList().push_back(ElseBB);
 		m_builder.SetInsertPoint(ElseBB);
 
@@ -312,6 +318,9 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 			ElseV = boost::apply_visitor(symbolVisitor, itrElse);
 			assert(ElseV);
 		}
+
+		// Small hack: Update our return flag if the 'else' branch created one
+		m_returnGenerated |= symbolVisitor.m_returnGenerated;
 
 		m_builder.CreateBr(MergeBB);
 		ElseBB = m_builder.GetInsertBlock();
@@ -396,7 +405,7 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		assert(varRhs);
 
 		if (itr.op == "+") {
-			varLhs = m_builder.CreateAdd(varLhs, varRhs);
+			varLhs = m_builder.CreateAdd(varLhs, varRhs, "add");
 		} else if (itr.op == "<") {
 			varLhs = m_builder.CreateICmpSLT(varLhs, varRhs, "cmp lt");
 		}

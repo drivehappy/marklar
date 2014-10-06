@@ -215,6 +215,27 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 		"  int b = 4;"
 		"  if (a < b) {"
 		"    return 1;"
+		"  }"
+		"  return 0;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, FunctionIfElseStmtReturn) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 3;"
+		"  int b = 4;"
+		"  if (a < b) {"
+		"    return 1;"
 		"  } else {"
 		"    return 0;"
 		"  }"
@@ -229,6 +250,7 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
+
 
 
 
