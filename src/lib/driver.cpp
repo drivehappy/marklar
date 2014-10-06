@@ -1,8 +1,5 @@
 #include "driver.h"
 
-#include <fstream>
-#include <sstream>
-
 #include <boost/variant/get.hpp>
 
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -25,11 +22,7 @@ namespace marklar {
 
 	namespace driver {
 
-		bool generateOutput(const string& inputFilename, const string& outputBitCodeName) {
-			ifstream in(inputFilename.c_str());
-
-			const string fileContents(static_cast<stringstream const&>(stringstream() << in.rdbuf()).str());
-
+		bool generateOutput(const string& fileContents, const string& outputBitCodeName) {
 			// Parse the source file
 			cout << "Parsing..." << endl;
 			base_expr_node rootAst;
@@ -104,6 +97,8 @@ namespace marklar {
 			// Leverage gcc here to link the object file into the final executable
 			// this is mainly to bypass the more complicated options that the system 'ld' needs
 			{
+				cout << "Building executable..." << endl;
+
 				const string outputExeName = (exeName.empty() ? "a.out" : exeName);
 				const string gccCmd = "gcc -o " + outputExeName + " " + tmpObjName;
 				

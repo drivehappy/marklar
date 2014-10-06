@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include <string>
 
 #include <boost/program_options/cmdline.hpp>
@@ -40,7 +42,11 @@ int main(int argc, char** argv) {
 			outputFilename = vm["output-file"].as<string>();
 		}
 
-		if (!generateOutput(inputFilename, tmpBitCodeFile)) {
+		// Pull in the source file and generate the code
+		ifstream in(inputFilename.c_str());
+		const string fileContents(static_cast<stringstream const&>(stringstream() << in.rdbuf()).str());
+
+		if (!generateOutput(fileContents, tmpBitCodeFile)) {
 			return 2;
 		}
 
