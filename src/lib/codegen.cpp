@@ -369,6 +369,7 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		{ "+",  bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
 		{ "<",  bind(&IRBuilder<>::CreateICmpSLT, m_builder, _1, _2, "cmp") },
 		{ ">",  bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
+		{ "%",  bind(&IRBuilder<>::CreateSRem,    m_builder, _1, _2, "rem") },
 		{ "==", bind(&IRBuilder<>::CreateICmpEQ,  m_builder, _1, _2, "cmp") },
 	};
 

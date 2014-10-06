@@ -157,7 +157,7 @@ namespace parser {
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
-			op %= qi::char_("+<>") | (qi::char_("=") >> qi::char_("="));
+			op %= qi::char_("+<>%") | (qi::char_("=") >> qi::char_("="));
 
 			// Debugging
 			/*

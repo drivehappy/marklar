@@ -262,3 +262,23 @@ TEST(CodegenTest, OperatorEqual) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, OperatorModulo) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 5 % 3;"
+		"  if (a == 2) {"
+		"    return 1;"
+		"  }"
+		"  return 0;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
