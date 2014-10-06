@@ -189,7 +189,6 @@ TEST(CodegenTest, FunctionMultipleArgs) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
-#if 0
 TEST(CodegenTest, FunctionUseArgs) {
 	const auto testProgram =
 		"int main(int a) {"
@@ -205,7 +204,6 @@ TEST(CodegenTest, FunctionUseArgs) {
 	auto module = codegenTest(root);
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
-#endif
 
 
 

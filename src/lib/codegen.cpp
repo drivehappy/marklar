@@ -29,21 +29,24 @@ namespace {
 
 
 Value* ast_codegen::operator()(const string& val) {
-	//cerr << "Generating code for string \"" << val << "\"" << endl;
+	cerr << "Generating code for string \"" << val << "\"" << endl;
 
 	Value *retVal = nullptr;
 
 	map<string, Value*>::iterator itr = m_symbolTable.find(val);
 	if (itr != m_symbolTable.end()) {
-		Value *localVar = itr->second;
-		retVal = m_builder.CreateLoad(localVar);
+		Value* const localVar = itr->second;
 
-		//return m_builder.CreateRet(retVal);
+		// Only create a load if this is a pointer type, this avoids
+		// problems with function arguments that aren't created through Alloca
+		if (localVar->getType()->isPointerTy()) {
+			retVal = m_builder.CreateLoad(localVar);
+		} else {
+			retVal = localVar;
+		}
 	} else if (is_number(val)) {
 		APInt vInt(32, stoi(val));
 		retVal = ConstantInt::get(getGlobalContext(), vInt);
-		
-		//return m_builder.CreateRet(v);
 	} else {
 		cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
 		cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
@@ -91,7 +94,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		F = dynamic_cast<Function*>(itr->second);
 	}
 
-	BasicBlock *BB = BasicBlock::Create(getGlobalContext(), "entry", F);
+	BasicBlock *BB = BasicBlock::Create(getGlobalContext(), func.functionName.c_str(), F);
 	m_builder.SetInsertPoint(BB);
 
 	// Add function arguments
