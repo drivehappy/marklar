@@ -63,3 +63,59 @@ TEST(DriverTest, BasicFunction) {
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, FunctionSingleDecl) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 2;"
+		"  return i;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(2, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, FunctionMultiDecl) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 2;"
+		"  int j = 5;"
+		"  return j;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(5, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, FunctionMultiDeclSum) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 2;"
+		"  int j = 5;"
+		"  return i + j;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(7, runExecutable(g_outputExe));
+}
+

@@ -29,7 +29,7 @@ namespace {
 
 
 Value* ast_codegen::operator()(const string& val) {
-	cerr << "Generating code for string \"" << val << "\"" << endl;
+	//cerr << "Generating code for string \"" << val << "\"" << endl;
 
 	Value *retVal = nullptr;
 
@@ -59,7 +59,7 @@ Value* ast_codegen::operator()(const string& val) {
 }
 
 Value* ast_codegen::operator()(const parser::base_expr& expr) {
-	cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << endl;
+	//cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << endl;
 
 	//assert(expr);
 
@@ -73,7 +73,7 @@ Value* ast_codegen::operator()(const parser::base_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::func_expr& func) {
-	cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
+	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
 	vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
@@ -119,13 +119,13 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 }
 
 Value* ast_codegen::operator()(const parser::decl_expr& decl) {
-	cerr << "Generating code for declaration \"" << decl.declName << "\"" << endl;
+	//cerr << "Generating code for declaration \"" << decl.declName << "\"" << endl;
 
 	Value* var = nullptr;
 
 	map<string, Value*>::const_iterator itr = m_symbolTable.find(decl.declName);
 	if (itr == m_symbolTable.end()) {
-		cerr << "  Variable referenced for first time: " << decl.declName << endl;
+		//cerr << "  Variable referenced for first time: " << decl.declName << endl;
 
 		BasicBlock *bb = m_builder.GetInsertBlock();
 		AllocaInst *Alloca = nullptr;
@@ -172,7 +172,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				m_builder.CreateStore(exprRhs, itr->second);
 			}
 		} else {
-			cout << "ERROR: Could not find variable: " << decl.declName << endl;
+			cerr << "ERROR: Could not find variable: " << decl.declName << endl;
 			return nullptr;
 		}
 	}
@@ -181,13 +181,13 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 }
 
 Value* ast_codegen::operator()(const parser::operator_expr& expr) {
-	cerr << "Generating code for operator" << endl;
+	//cerr << "Generating code for operator" << endl;
 
 	return nullptr;
 }
 
 Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
-	cerr << "Generating code for return:" << endl;
+	//cerr << "Generating code for return:" << endl;
 	
 	Value* v = boost::apply_visitor(*this, exprRet.ret);
 
@@ -231,7 +231,21 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 	return nullptr;
 }
 
-Value* ast_codegen::operator()(const parser::binary_op& expr) {
-	return nullptr;
+Value* ast_codegen::operator()(const parser::binary_op& op) {
+	cerr << "Generating code for binary_op:" << endl;
+
+	Value* const varLhs = boost::apply_visitor(*this, op.lhs);
+	assert(varLhs);
+
+	for (auto& itr : op.operation) {
+		Value* const varRhs = boost::apply_visitor(*this, itr.rhs);
+		assert(varRhs);
+
+		if (itr.op == "+") {
+			return m_builder.CreateAdd(varLhs, varRhs);
+		}
+	}
+
+	return varLhs;
 }
 
