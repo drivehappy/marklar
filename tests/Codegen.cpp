@@ -52,8 +52,9 @@ TEST(CodegenTest, BasicFunction) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
+	// We expect verifyModule to fail (returns true), since we don't have a return
 	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDecl) {
@@ -68,10 +69,9 @@ TEST(CodegenTest, FunctionSingleDecl) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
+	// We expect verifyModule to fail (returns true), since we don't have a return
 	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
-
-	module->dump();
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDeclReturn) {
@@ -89,9 +89,26 @@ TEST(CodegenTest, FunctionSingleDeclReturn) {
 
 	auto module = codegenTest(root);
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, FunctionMultiDeclAssign) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 1 + 2;"
+		"  int j = i + 2;"
+		"  int k = i + j;"
+		"  return k;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 
 	module->dump();
 }
-
-
 
