@@ -19,6 +19,7 @@ using namespace parser;
 
 using namespace llvm;
 using namespace std;
+using namespace std::placeholders;
 
 
 namespace {
@@ -104,6 +105,13 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	assert(Alloca);
 	m_symbolTable["__retval__"] = Alloca;
 
+	APInt vInt(32, 0);
+	m_builder.CreateStore(ConstantInt::get(getGlobalContext(), vInt), Alloca);
+
+	BasicBlock *ReturnBB = BasicBlock::Create(getGlobalContext(), "return");
+	m_symbolTable["__retval__BB"] = ReturnBB;
+
+
 	// Add function arguments
 	Function::arg_iterator argItr = F->arg_begin();
 	for (auto& argStr : func.args) {
@@ -126,6 +134,9 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	}
 
 	// Build the return inst
+	F->getBasicBlockList().push_back(ReturnBB);
+	m_builder.SetInsertPoint(ReturnBB);
+
 	Value* const loadRetVal = m_builder.CreateLoad(m_symbolTable["__retval__"]);
 	assert(loadRetVal);
 	Value* const retVal = m_builder.CreateRet(loadRetVal);
@@ -213,10 +224,18 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	// when the function was created - we should only be writing to this once
 	Value* const retVal = m_symbolTable["__retval__"];
 	assert(retVal);
-	
+
+#if 0	
 	if (m_returnGenerated) {
+		/*
+		APInt vInt(32, stoi(val));
+		defaultRet = ConstantInt::get(getGlobalContext(), vInt);
+
+		m_builder.CreateStore(defaultRet, retVal);
+		*/
 		return retVal;
 	}
+#endif
 
 	Value* const v = boost::apply_visitor(*this, exprRet.ret);
 	assert(v);
@@ -224,12 +243,16 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	Value* const n = m_builder.CreateStore(v, retVal);
 	assert(n);
 
+	Value* const ReturnBB = m_symbolTable["__retval__BB"];
+	Value* const r = m_builder.CreateBr(dynamic_cast<BasicBlock*>(ReturnBB));
+	assert(r);
+
 	// This should be a pointer type, the function would have created this
-	assert(retVal->getType()->isPointerTy());
+	//assert(retVal->getType()->isPointerTy());
 
-	m_returnGenerated = true;
+	//m_returnGenerated = true;
 
-	return n;
+	return r;
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
@@ -276,7 +299,7 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 	// end of the function
 	BasicBlock *ThenBB = BasicBlock::Create(getGlobalContext(), "if.then", TheFunction);
 	BasicBlock *ElseBB = BasicBlock::Create(getGlobalContext(), "if.else");
-	BasicBlock *MergeBB = BasicBlock::Create(getGlobalContext(), "return");
+	BasicBlock *MergeBB = BasicBlock::Create(getGlobalContext(), "if.end");
 
 	m_builder.CreateCondBr(CondV, ThenBB, ElseBB);
 
@@ -284,7 +307,6 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 	Value* ElseV = nullptr;
 
 	// Build the 'then' branch code
-	//if (expr.thenBranch.size() > 0) {
 	{
 		m_builder.SetInsertPoint(ThenBB);
 
@@ -298,14 +320,16 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 		}
 
 		// Small hack: Update our return flag if the 'then' branch created one
-		m_returnGenerated |= symbolVisitor.m_returnGenerated;
+		//m_returnGenerated |= symbolVisitor.m_returnGenerated;
 
-		m_builder.CreateBr(MergeBB);
+		if (!isa<BranchInst>(ThenV)) {
+			m_builder.CreateBr(MergeBB);
+		}
+
 		ThenBB = m_builder.GetInsertBlock();
 	}
 
 	// Build the 'else' branch code
-	//if (expr.elseBranch.size() > 0) {
 	{
 		TheFunction->getBasicBlockList().push_back(ElseBB);
 		m_builder.SetInsertPoint(ElseBB);
@@ -320,81 +344,32 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 		}
 
 		// Small hack: Update our return flag if the 'else' branch created one
-		m_returnGenerated |= symbolVisitor.m_returnGenerated;
+		//m_returnGenerated |= symbolVisitor.m_returnGenerated;
 
-		m_builder.CreateBr(MergeBB);
+		if (!ElseV || (ElseV && !isa<BranchInst>(ElseV))) {
+			m_builder.CreateBr(MergeBB);
+		}
+
 		ElseBB = m_builder.GetInsertBlock();
 	}
 
-	// Finalize the condition 
+	// Finalize the condition, sets the insertion point so code after this is attached
+	// to the "if.end" block
 	TheFunction->getBasicBlockList().push_back(MergeBB);
 	m_builder.SetInsertPoint(MergeBB);
 
 	return MergeBB;
-
-	/*
-	PHINode* const PN = m_builder.CreatePHI(
-		Type::getVoidTy(getGlobalContext()), 2, "iftmp");
-
-	cerr << "ThenV:" << endl;
-	ThenV->dump();
-	cerr << endl;
-	cerr << "ElseV:" << endl;
-	ElseV->dump();
-	cerr << endl;
-	cerr << "PHI:" << endl;
-	PN->dump();
-	cerr << endl;
-
-	PN->addIncoming(ThenV, ThenBB);
-	PN->addIncoming(ElseV, ElseBB);
-
-	return PN;
-	*/
-
-	/*
-	// Build the Then/Else BB
-	if (expressionThen) {
-		builder.SetInsertPoint(ThenBB);
-		ThenV = expressionThen->generateCode(module, builder);
-
-		// TODO: Make these siblings, they're not really children but that's how the parser added them
-		for (const auto exprItr : expressionThen->getExpressions()) {
-			exprItr->generateCode(module, builder);
-		}
-
-		builder.CreateBr(MergeBB);
-		ThenBB = builder.GetInsertBlock();
-	} else {
-		assert(false && "No then statement not supported");
-	}
-
-	if (expressionElse) {
-		TheFunction->getBasicBlockList().push_back(ElseBB);
-		builder.SetInsertPoint(ElseBB);
-		ElseV = expressionElse->generateCode(module, builder);
-
-		// TODO: Make these siblings, they're not really children but that's how the parser added them
-		for (const auto exprItr : expressionElse->getExpressions()) {
-			exprItr->generateCode(module, builder);
-		}
-
-		builder.CreateBr(MergeBB);
-		ElseBB = builder.GetInsertBlock();
-	} else {
-		assert(false && "No else statement not supported");
-	}
-
-	// Emit merge block.
-	TheFunction->getBasicBlockList().push_back(MergeBB);
-	builder.SetInsertPoint(MergeBB);
-	*/
-
-	return nullptr;
 }
 
 Value* ast_codegen::operator()(const parser::binary_op& op) {
 	cerr << "Generating code for binary_op:" << endl;
+
+	// Mapping of operator to LLVM creation calls
+	const map<string, std::function<Value*(Value*, Value*)>> ops = {
+		{ "+", bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
+		{ "<", bind(&IRBuilder<>::CreateICmpSLT, m_builder, _1, _2, "cmp") },
+		{ ">", bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
+	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);
 	assert(varLhs);
@@ -404,11 +379,14 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		Value* const varRhs = boost::apply_visitor(*this, itr.rhs);
 		assert(varRhs);
 
-		if (itr.op == "+") {
-			varLhs = m_builder.CreateAdd(varLhs, varRhs, "add");
-		} else if (itr.op == "<") {
-			varLhs = m_builder.CreateICmpSLT(varLhs, varRhs, "cmp lt");
+		const auto& itr2 = ops.find(itr.op);
+		if (itr2 == ops.end()) {
+			assert(false && "Unsupported operator");
+			return nullptr;
 		}
+
+		// Call the mapped operator type to create the appropriate one
+		varLhs = itr2->second(varLhs, varRhs);
 	}
 
 	return varLhs;

@@ -208,6 +208,25 @@ TEST(DriverTest, FunctionCall) {
 	EXPECT_EQ(4, runExecutable(g_outputExe + " arg1 arg2"));
 }
 
+TEST(DriverTest, FunctionIfStmtReturnSimple) {
+	const auto testProgram =
+		"int main() {"
+		"  if (3 < 4) {"
+		"    return 1;"
+		"  }"
+		"  return 0;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
 TEST(DriverTest, FunctionIfStmtReturn) {
 	const auto testProgram =
 		"int main() {"
@@ -234,11 +253,31 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 		"int main() {"
 		"  int a = 3;"
 		"  int b = 4;"
-		"  if (a < b) {"
+		"  if (a > b) {"
 		"    return 1;"
 		"  } else {"
 		"    return 0;"
 		"  }"
+		"  return 2;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(0, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, OperatorLessThan) {
+	const auto testProgram =
+		"int main() {"
+		"  if (3 < 4) {"
+		"    return 1;"
+		"  }"
+		"  return 0;"
 		"}";
 
 	// Cleanup generated intermediate and executable files
@@ -249,6 +288,26 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 	EXPECT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
+
+TEST(DriverTest, OperatorGreaterThan) {
+	const auto testProgram =
+		"int main() {"
+		"  if (3 > 4) {"
+		"    return 1;"
+		"  }"
+		"  return 2;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
 

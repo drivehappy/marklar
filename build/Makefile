@@ -25,7 +25,7 @@ build-all: main tests
 	$(CXX) $(CC_FLAGS) -c -o $@ $<
 
 main: $(OBJ_FILES) $(OBJ_FILES_LIB)
-	$(CXX) $(CC_FLAGS) -o main $(OBJ_FILES) $(OBJ_FILES_LIB) $(LD_FLAGS)
+	$(CXX) $(CC_FLAGS) -o marklarc $(OBJ_FILES) $(OBJ_FILES_LIB) $(LD_FLAGS)
 
 tests: $(OBJ_FILES_TESTS) $(OBJ_FILES_LIB)
 	$(CXX) $(CC_FLAGS) -o tests $(OBJ_FILES_TESTS) $(OBJ_FILES_LIB) $(LD_FLAGS_TESTS)
@@ -46,5 +46,5 @@ output.o: output.asm
 .PHONY: clean
 .IGNORE: clean
 clean: 
-	rm -rf ../src/*.o ../src/lib/*.o ../tests/*.o main tests
+	rm -rf ../src/*.o ../src/lib/*.o ../tests/*.o marklarc tests
 

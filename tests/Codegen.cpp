@@ -52,8 +52,9 @@ TEST(CodegenTest, BasicFunction) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
+	// Expect this to fail since we require a 'return'
 	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDecl) {
@@ -68,8 +69,9 @@ TEST(CodegenTest, FunctionSingleDecl) {
 	string errorInfo;
 	raw_string_ostream errorOut(errorInfo);
 
+	// Expect this to fail since we require a 'return'
 	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
 }
  
 TEST(CodegenTest, FunctionSingleDeclReturn) {
@@ -222,6 +224,23 @@ TEST(CodegenTest, FunctionCall) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, OperatorGreaterThan) {
+	const auto testProgram =
+		"int main() {"
+		"  if (3 > 4) {"
+		"    return 1;"
+		"  }"
+		"  return 2;"
+		"}";
 
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
 
 
