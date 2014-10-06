@@ -54,9 +54,12 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 	EXPECT_EQ("i", decl->declName);
 
-	string* opVal = boost::get<string>(&decl->val);
+	binary_op* opVal = boost::get<binary_op>(&decl->val);
 	EXPECT_TRUE(opVal != nullptr);
-	EXPECT_EQ("0", *opVal);
+
+	string* opValStr = boost::get<string>(&opVal->lhs);
+	EXPECT_TRUE(opValStr != nullptr);
+	EXPECT_EQ("0", *opValStr);
 }
 
 TEST(ASTTest, FunctionMultiDecl) {
@@ -71,7 +74,10 @@ TEST(ASTTest, FunctionMultiDecl) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_NE(nullptr, expr);
+
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
+	EXPECT_NE(nullptr, exprF);
 
 	EXPECT_EQ(3, exprF->declarations.size());
 
@@ -91,7 +97,11 @@ TEST(ASTTest, FunctionMultiDecl) {
 
 		EXPECT_EQ(itr->first, decl->declName);
 
-		string* lhsVal = boost::get<string>(&decl->val);
+		binary_op* valOp = boost::get<binary_op>(&decl->val);
+		EXPECT_NE(nullptr, valOp);
+
+		string* lhsVal = boost::get<string>(&valOp->lhs);
+		EXPECT_NE(nullptr, lhsVal);
 		EXPECT_EQ(itr->second, *lhsVal);
 	}
 }
@@ -200,9 +210,12 @@ TEST(ASTTest, FunctionReturn) {
 	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
 	EXPECT_TRUE(exprR != nullptr);
 
-	string* exprRval = boost::get<string>(&exprR->ret);
-	EXPECT_TRUE(exprRval != nullptr);
-	EXPECT_EQ("1", *exprRval);
+	binary_op* exprRval = boost::get<binary_op>(&exprR->ret);
+	EXPECT_NE(nullptr, exprRval);
+
+	string* exprRvalStr = boost::get<string>(&exprRval->lhs);
+	EXPECT_NE(nullptr, exprRvalStr);
+	EXPECT_EQ("1", *exprRvalStr);
 }
 
 TEST(ASTTest, FunctionReturnComplex) {
@@ -315,22 +328,37 @@ TEST(ASTTest, FunctionCall) {
 
 TEST(ASTTest, FunctionCallArgs) {
 	const auto testProgram =
-		"int foo(int a) {}"
+		"int foo(int a) {"
+		"  return a;"
+		"}"
 		"int main() {"
-		"  foo(45);"
+		"  return foo(45);"
 		"}";
 
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_TRUE(expr != nullptr);
+
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprF_main != nullptr);
+
+	return_expr* retExpr = boost::get<return_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(retExpr != nullptr);
+
+	call_expr* callExpr = boost::get<call_expr>(&retExpr->ret);
 	EXPECT_TRUE(callExpr != nullptr);
 
 	EXPECT_EQ("foo", callExpr->funcName);
 	EXPECT_EQ(1, callExpr->values.size());
-	EXPECT_EQ("45", callExpr->values[0]);
+
+	binary_op* val = boost::get<binary_op>(&callExpr->values[0]);
+	EXPECT_TRUE(val != nullptr);
+
+	string* strVal = boost::get<string>(&val->lhs);
+	EXPECT_TRUE(strVal != nullptr);
+	EXPECT_EQ("45", *strVal);
 }
 
 TEST(ASTTest, FunctionCallArgsComplex) {
@@ -347,7 +375,10 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_NE(nullptr, expr);
+
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	EXPECT_NE(nullptr, exprF_main);
 	
 	return_expr* exprR = boost::get<return_expr>(&exprF_main->expressions[0]);
 	EXPECT_TRUE(exprR != nullptr);
@@ -357,8 +388,20 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 
 	EXPECT_EQ("bar", callExpr->funcName);
 	EXPECT_EQ(2, callExpr->values.size());
-	EXPECT_EQ("a", callExpr->values[0]);
-	EXPECT_EQ("5", callExpr->values[1]);
+
+	binary_op* val1 = boost::get<binary_op>(&callExpr->values[0]);
+	EXPECT_NE(nullptr, val1);
+
+	string* val1Str = boost::get<string>(&val1->lhs);
+	EXPECT_NE(nullptr, val1Str);
+	EXPECT_EQ("a", *val1Str);
+
+	binary_op* val2 = boost::get<binary_op>(&callExpr->values[1]);
+	EXPECT_NE(nullptr, val2);
+
+	string* val2Str = boost::get<string>(&val2->lhs);
+	EXPECT_NE(nullptr, val2Str);
+	EXPECT_EQ("5", *val2Str);
 }
 
 TEST(ASTTest, FunctionIfStmt) {

@@ -6,6 +6,7 @@
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Verifier.h>
 
@@ -230,7 +231,34 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
-	return nullptr;
+	cerr << "Generating code for call_expr:" << endl;
+
+	const string& callFuncName = expr.funcName;
+	Function *calleeF = m_module->getFunction(callFuncName);
+	if (calleeF == nullptr) {
+		cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
+		return nullptr;
+	}
+
+	// Check that the number of arguments match with what we expect on the function
+	if (calleeF->arg_size() != expr.values.size()) {
+		cerr << "Error: Function call expected " << calleeF->arg_size() << " arguments, but got " << expr.values.size() << endl;
+		return nullptr;
+	}
+
+	// Build the arguments
+	std::vector<Value*> ArgsV;
+	cerr << "  Building call arguments: " << expr.values.size() << endl;
+	for (auto& exprArg : expr.values) {
+		Value* const v = boost::apply_visitor(*this, exprArg);
+		ArgsV.push_back(v);
+	}
+
+	// TODO Support arguments
+	CallInst *callInst = m_builder.CreateCall(calleeF, ArgsV, callFuncName);
+
+	// Pass the call up so the value can be stored
+	return callInst;
 }
 
 Value* ast_codegen::operator()(const parser::if_expr& expr) {

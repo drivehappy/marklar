@@ -63,7 +63,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::call_expr,
 	(std::string, funcName)
-	(std::vector<std::string>, values)
+	(std::vector<parser::base_expr_node>, values)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -120,7 +120,7 @@ namespace parser {
 
 			op_expr %=
 				   factor
-				>> +(op >> factor);
+				>> *(op >> factor);
 
 			factor %=
 				   qi::lit('(') >> op_expr >> ')'
@@ -128,9 +128,14 @@ namespace parser {
 
 			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl;
 
+			// Small hack to only allow op_expr, but allow boost::fusion to use
+			// the base_node_expr type still (if we didn't, then baseExpr would
+			// be used, and it would parse odd things)
+			callBaseExpr %= op_expr;
+
 			callExpr %=
 				   varName
-				>> '(' >> *(value % ',') >> ')'
+				>> '(' >> *(callBaseExpr % ',') >> ')'
 				;
 
 			returnExpr %=
@@ -164,13 +169,9 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
 			BOOST_SPIRIT_DEBUG_NODE(callExpr);
 			BOOST_SPIRIT_DEBUG_NODE(op);
-			*/
-
-			/*
-			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
-			BOOST_SPIRIT_DEBUG_NODE(op_expr);
-			BOOST_SPIRIT_DEBUG_NODE(callExpr);
 			BOOST_SPIRIT_DEBUG_NODE(value);
+			BOOST_SPIRIT_DEBUG_NODE(intLiteral);
+			BOOST_SPIRIT_DEBUG_NODE(factor);
 			*/
 		}
 
@@ -180,9 +181,9 @@ namespace parser {
 		qi::rule<Iterator, func_expr(), qi::space_type> funcExpr;
 		qi::rule<Iterator, decl_expr(), qi::space_type> varDecl;
 		qi::rule<Iterator, string(), qi::space_type> varDef;
-		//qi::rule<Iterator, operator_expr(), qi::space_type> op_expr;
 		qi::rule<Iterator, binary_op(), qi::space_type> op_expr;
 		qi::rule<Iterator, base_expr_node(), qi::space_type> baseExpr;
+		qi::rule<Iterator, base_expr_node(), qi::space_type> callBaseExpr;
 		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
 		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
 		qi::rule<Iterator, if_expr(), qi::space_type> ifExpr;

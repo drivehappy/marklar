@@ -66,7 +66,7 @@ namespace parser {
 
 	struct call_expr {
 		std::string funcName;
-		std::vector<std::string> values;
+		std::vector<base_expr_node> values;
 	};
 
 	struct if_expr {
