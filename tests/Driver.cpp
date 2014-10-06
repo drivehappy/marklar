@@ -119,3 +119,49 @@ TEST(DriverTest, FunctionMultiDeclSum) {
 	EXPECT_EQ(7, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, FunctionMultiDeclSumComplex) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 2;"
+		"  int j = 5;"
+		"  return i + j + 6;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(13, runExecutable(g_outputExe));
+}
+
+// Tests scoping rules of multiple functions with identical variable names
+TEST(DriverTest, MultipleFunction) {
+	const auto testProgram =
+		"int bar() {"
+		"  int a = 5;"
+		"  return a;"
+		"}"
+		"int foo() {"
+		"  int a = 4;"
+		"  return a;"
+		"}"
+		"int main() {"
+		"  int a = 3;"
+		"  return a;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(driver::generateOutput(testProgram, g_outputBitCode ));
+	EXPECT_TRUE(driver::optimizeAndLink(g_outputBitCode, g_outputExe));
+
+	EXPECT_EQ(3, runExecutable(g_outputExe));
+}
+

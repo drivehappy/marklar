@@ -253,6 +253,7 @@ TEST(ASTTest, MultipleComplexFunction) {
 		"  return a + b + 0;"
 		"}"
 		"int foo() {"
+		"  int a = 0;"
 		"  return a + 0;"
 		"}"
 		"int main() {"

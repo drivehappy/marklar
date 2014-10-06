@@ -76,12 +76,12 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
-	vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
 
 	// Determine if this function name has been defined yet
 	auto itr = m_symbolTable.find(func.functionName);
 	if (itr == m_symbolTable.end()) {
 		// Could not find existing function with this name, build it
+		vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
 		FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
@@ -98,18 +98,21 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	Function::arg_iterator argItr = F->arg_begin();
 	for (auto& argStr : func.args) {
 		argItr->setName(argStr);
-
 		m_symbolTable[argStr] = argItr;
 	}
 
+	// Created a new visitor, this allows function-level scoping so our symbol table
+	// isn't re-used across other functions
+	ast_codegen symbolVisitor(*this);
+
 	// Visit declarations inside the function node
 	for (auto& itrDecl : func.declarations) {
-		boost::apply_visitor(*this, itrDecl);
+		boost::apply_visitor(symbolVisitor, itrDecl);
 	}
 
 	// Visit expressions inside the function node
 	for (auto& itrExpr : func.expressions) {
-		boost::apply_visitor(*this, itrExpr);
+		boost::apply_visitor(symbolVisitor, itrExpr);
 	}
 
 	// LLVM sanity check
@@ -234,15 +237,16 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 Value* ast_codegen::operator()(const parser::binary_op& op) {
 	cerr << "Generating code for binary_op:" << endl;
 
-	Value* const varLhs = boost::apply_visitor(*this, op.lhs);
+	Value* varLhs = boost::apply_visitor(*this, op.lhs);
 	assert(varLhs);
 
+	// This acts a chain, e.g.: "1 + 3 + i + k", varLhs is built up for each
 	for (auto& itr : op.operation) {
 		Value* const varRhs = boost::apply_visitor(*this, itr.rhs);
 		assert(varRhs);
 
 		if (itr.op == "+") {
-			return m_builder.CreateAdd(varLhs, varRhs);
+			varLhs = m_builder.CreateAdd(varLhs, varRhs);
 		}
 	}
 

@@ -108,7 +108,104 @@ TEST(CodegenTest, FunctionMultiDeclAssign) {
 
 	auto module = codegenTest(root);
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
-
-	module->dump();
 }
+
+TEST(CodegenTest, FunctionMultiDeclSum) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 2;"
+		"  int j = 5;"
+		"  return i + j;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, MultipleFunction) {
+	const auto testProgram =
+		"int bar() {"
+		"  int a = 0;"
+		"  int b = 2;"
+		"  return a + b + 0;"
+		"}"
+		"int foo() {"
+		"  int a = 4;"
+		"  return a + 0;"
+		"}"
+		"int main() {"
+		"  return 0 + 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, FunctionArgs) {
+	const auto testProgram =
+		"int main(int a, int b) {"
+		"  return 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, FunctionMultipleArgs) {
+	const auto testProgram =
+		"int bar(int a) {"
+		"  int b = 2;"
+		"  return 1 + b + 0;"
+		"}"
+		"int main(int a, int b) {"
+		"  return 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+#if 0
+TEST(CodegenTest, FunctionUseArgs) {
+	const auto testProgram =
+		"int main(int a) {"
+		"  return a;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+#endif
+
+
 
