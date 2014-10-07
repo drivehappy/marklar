@@ -1,17 +1,19 @@
 marklar main() {
+	marklar sumOfSquares = 0;
+	marklar squareOfSum = 0;
+
 	marklar sum = 0;
 	marklar i = 1;
-	marklar prev = 0;
 
-	while (i < 4000000) {
-		marklar tmp = i;
-		i = (i + prev);
-		prev = tmp;
+	while (i < 101) {
+		sumOfSquares = sumOfSquares + (i * i);
+		sum = sum + i;
 
-		if ((i % 2) == 0) {
-			sum = sum + i;
-		}
+		i = i + 1;
 	}
+
+	squareOfSum = sum * sum;
 	
-	return (sum);
+	return (squareOfSum - sumOfSquares) >> 0;
 }
+
