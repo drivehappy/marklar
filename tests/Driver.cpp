@@ -348,3 +348,24 @@ TEST(DriverTest, OperatorModulo) {
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, WhileStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 2;"
+		"  int b = 6;"
+		"  while (a < b) {"
+		"    a = a + 1;"
+		"  }"
+		"  return a;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(6, runExecutable(g_outputExe));
+}
+

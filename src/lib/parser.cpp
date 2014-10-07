@@ -28,6 +28,17 @@ namespace phoenix = boost::phoenix;
 namespace fusion = boost::fusion;
 
 
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::operation,
+	(std::string, op)
+	(parser::base_expr_node, rhs)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::binary_op,
+	(parser::base_expr_node, lhs)
+	(std::vector<parser::operation>, operation)
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::base_expr,
@@ -74,16 +85,17 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-	parser::operation,
-	(std::string, op)
-	(parser::base_expr_node, rhs)
+	parser::while_loop,
+	(parser::binary_op, condition)
+	(std::vector<parser::base_expr_node>, loopBody)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-	parser::binary_op,
-	(parser::base_expr_node, lhs)
-	(std::vector<parser::operation>, operation)
+	parser::var_assign,
+	(std::string, varName)
+	(parser::base_expr_node, varRhs)
 )
+
 
 namespace parser {
 
@@ -126,7 +138,7 @@ namespace parser {
 				   qi::lit('(') >> op_expr >> ')'
 				|  value;
 
-			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl;
+			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
 
 			// Small hack to only allow op_expr, but allow boost::fusion to use
 			// the base_node_expr type still (if we didn't, then baseExpr would
@@ -154,6 +166,21 @@ namespace parser {
 				>> -(qi::lit("else") >> '{' >> *baseExpr >> '}')
 				;
 
+			whileLoop %=
+				   qi::lit("while")
+				>> '('
+				>> op_expr
+				>> ')' >> '{'
+				>> *baseExpr
+				>> '}'
+				;
+
+			varAssign %=
+				   varName
+				>> ('=' >> (op_expr | value))
+				>> ';'
+				;
+
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
@@ -172,6 +199,7 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(value);
 			BOOST_SPIRIT_DEBUG_NODE(intLiteral);
 			BOOST_SPIRIT_DEBUG_NODE(factor);
+			BOOST_SPIRIT_DEBUG_NODE(whileLoop);
 			*/
 		}
 
@@ -187,6 +215,8 @@ namespace parser {
 		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
 		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
 		qi::rule<Iterator, if_expr(), qi::space_type> ifExpr;
+		qi::rule<Iterator, while_loop(), qi::space_type> whileLoop;
+		qi::rule<Iterator, var_assign(), qi::space_type> varAssign;
 
 		qi::rule<Iterator, base_expr_node(), qi::space_type> factor;
 		qi::rule<Iterator, std::string(), qi::space_type> varName;

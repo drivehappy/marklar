@@ -33,6 +33,8 @@ namespace marklar {
 		llvm::Value* operator()(const parser::call_expr& expr);
 		llvm::Value* operator()(const parser::if_expr& expr);
 		llvm::Value* operator()(const parser::binary_op& expr);
+		llvm::Value* operator()(const parser::while_loop& expr);
+		llvm::Value* operator()(const parser::var_assign& expr);
 
 	private:
 		llvm::Module* m_module;

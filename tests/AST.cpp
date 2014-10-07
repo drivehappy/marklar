@@ -456,3 +456,69 @@ TEST(ASTTest, FunctionIfElseStmt) {
 	EXPECT_EQ(1, exprIf->elseBranch.size());
 }
 
+TEST(ASTTest, Assignment) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 3;"
+		"  a = a + 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
+
+	// Check the assignment 
+	EXPECT_EQ(1, exprF_main->declarations.size());
+	EXPECT_EQ(1, exprF_main->expressions.size());
+
+	var_assign* varAssign = boost::get<var_assign>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(varAssign != nullptr);
+
+	EXPECT_EQ("a", varAssign->varName);
+	
+	binary_op* exprRhs = boost::get<binary_op>(&varAssign->varRhs);
+	EXPECT_TRUE(exprRhs != nullptr);
+
+	string* exprRhs_Lhs = boost::get<string>(&exprRhs->lhs);
+	EXPECT_TRUE(exprRhs_Lhs != nullptr);
+	EXPECT_EQ("a", *exprRhs_Lhs);
+
+	EXPECT_EQ(1, exprRhs->operation.size());
+	EXPECT_EQ("+", exprRhs->operation[0].op);
+
+	string* exprRhs_Rhs = boost::get<string>(&exprRhs->operation[0].rhs);
+	EXPECT_TRUE(exprRhs_Rhs != nullptr);
+	EXPECT_EQ("1", *exprRhs_Rhs);
+}
+
+TEST(ASTTest, WhileStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  while (i < 4) {"
+		"  }"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
+
+	while_loop* exprLoop = boost::get<while_loop>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprLoop != nullptr);
+
+	// Check the condition
+	string* exprLoopOpLhs = boost::get<string>(&exprLoop->condition.lhs);
+	EXPECT_NE(nullptr, exprLoopOpLhs);
+	EXPECT_EQ("i", *exprLoopOpLhs);
+
+	EXPECT_EQ(1, exprLoop->condition.operation.size());
+	EXPECT_EQ("<", exprLoop->condition.operation[0].op);
+
+	string* exprLoopOpRhs = boost::get<string>(&exprLoop->condition.operation[0].rhs);
+	EXPECT_TRUE(exprLoopOpRhs != nullptr);
+	EXPECT_EQ("4", *exprLoopOpRhs);
+}
+

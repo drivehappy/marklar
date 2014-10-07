@@ -395,3 +395,58 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 	return varLhs;
 }
 
+Value* ast_codegen::operator()(const parser::while_loop& loop) {
+	//cerr << "Generating code for while loop" << endl;
+
+	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
+
+	BasicBlock *LoopBB = BasicBlock::Create(getGlobalContext(), "while.body");
+	BasicBlock *AfterBB = BasicBlock::Create(getGlobalContext(), "while.end");
+	BasicBlock *loopCond = BasicBlock::Create(getGlobalContext(), "while.cond", TheFunction);
+
+	m_builder.CreateBr(loopCond);
+	m_builder.SetInsertPoint(loopCond);
+
+	// Generate the condition code directly
+	Value* const cond = (*this)(loop.condition);
+	m_builder.CreateCondBr(cond, LoopBB, AfterBB);
+
+	TheFunction->getBasicBlockList().push_back(LoopBB);
+	m_builder.SetInsertPoint(LoopBB);
+
+	// Created a new visitor, this allows scoping so our symbol table isn't re-used across other functions
+	ast_codegen symbolVisitor(*this);
+
+	// Generate the loop body
+	for (const auto& itrBody : loop.loopBody) {
+		Value* const loopBody = boost::apply_visitor(symbolVisitor, itrBody);
+		assert(loopBody);
+	}
+
+	m_builder.CreateBr(loopCond);
+
+	TheFunction->getBasicBlockList().push_back(AfterBB);
+	m_builder.SetInsertPoint(AfterBB);
+
+	return nullptr;
+}
+
+Value* ast_codegen::operator()(const parser::var_assign& assign) {
+	//cerr << "Generating code for variable assignment of \"" << assign.varName << "\"" << endl;
+
+	Value* const rhsVal = boost::apply_visitor(*this, assign.varRhs);
+
+	const auto& itr = m_symbolTable.find(assign.varName);
+	if (itr == m_symbolTable.end()) {
+		cerr << "Unknown variable assignment: \"" << assign.varName << "\"" << endl;
+		return nullptr;
+	}
+
+	if (rhsVal->getType()->isPointerTy()) {
+		Value* const varLhs = m_builder.CreateLoad(rhsVal);
+		return m_builder.CreateStore(varLhs, itr->second);
+	}
+	
+	return m_builder.CreateStore(rhsVal, itr->second);
+}
+

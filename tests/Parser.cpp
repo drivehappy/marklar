@@ -158,3 +158,27 @@ TEST(ParserTest, FunctionIfElseStmt) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, Assignment) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 0;"
+		"  a = a + 1;"
+		"  return a;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, WhileStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  while (i < 4) {"
+		"    if (i > 5) {"
+		"    } else {"
+		"    }"
+		"  }"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+

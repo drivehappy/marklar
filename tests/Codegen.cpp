@@ -282,3 +282,42 @@ TEST(CodegenTest, OperatorModulo) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, Assignment) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 3;"
+		"  a = a + 1;"
+		"  return a;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, WhileStmt) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 2;"
+		"  int b = 6;"
+		"  while (a < b) {"
+		"    a = a + 1;"
+		"  }"
+		"  return a;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+

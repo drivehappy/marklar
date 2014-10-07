@@ -15,6 +15,8 @@ namespace parser {
 	struct return_expr;
 	struct if_expr;
 	struct binary_op;
+	struct while_loop;
+	struct var_assign;
 	
 
 	typedef boost::variant<
@@ -26,6 +28,8 @@ namespace parser {
 		boost::recursive_wrapper<return_expr>,
 		boost::recursive_wrapper<if_expr>,
 		boost::recursive_wrapper<binary_op>,
+		boost::recursive_wrapper<while_loop>,
+		boost::recursive_wrapper<var_assign>,
 		std::string
 	> base_expr_node;
 
@@ -73,6 +77,16 @@ namespace parser {
 		binary_op condition;
 		std::vector<base_expr_node> thenBranch;
 		std::vector<base_expr_node> elseBranch;
+	};
+
+	struct while_loop {
+		binary_op condition;
+		std::vector<base_expr_node> loopBody;
+	};
+
+	struct var_assign {
+		std::string varName;
+		base_expr_node varRhs;
 	};
 
 }
