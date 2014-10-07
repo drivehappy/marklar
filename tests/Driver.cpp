@@ -58,7 +58,7 @@ namespace {
 
 TEST(DriverTest, BasicFunction) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  return 3;"
 		"}";
 
@@ -74,8 +74,8 @@ TEST(DriverTest, BasicFunction) {
 
 TEST(DriverTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 2;"
+		"marklar main() {"
+		"  marklar i = 2;"
 		"  return i;"
 		"}";
 
@@ -91,9 +91,9 @@ TEST(DriverTest, FunctionSingleDecl) {
 
 TEST(DriverTest, FunctionMultiDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 2;"
-		"  int j = 5;"
+		"marklar main() {"
+		"  marklar i = 2;"
+		"  marklar j = 5;"
 		"  return j;"
 		"}";
 
@@ -109,9 +109,9 @@ TEST(DriverTest, FunctionMultiDecl) {
 
 TEST(DriverTest, FunctionMultiDeclSum) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 2;"
-		"  int j = 5;"
+		"marklar main() {"
+		"  marklar i = 2;"
+		"  marklar j = 5;"
 		"  return i + j;"
 		"}";
 
@@ -127,9 +127,9 @@ TEST(DriverTest, FunctionMultiDeclSum) {
 
 TEST(DriverTest, FunctionMultiDeclSumComplex) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 2;"
-		"  int j = 5;"
+		"marklar main() {"
+		"  marklar i = 2;"
+		"  marklar j = 5;"
 		"  return i + j + 6;"
 		"}";
 
@@ -146,16 +146,16 @@ TEST(DriverTest, FunctionMultiDeclSumComplex) {
 // Tests scoping rules of multiple functions with identical variable names
 TEST(DriverTest, MultipleFunction) {
 	const auto testProgram =
-		"int bar() {"
-		"  int a = 5;"
+		"marklar bar() {"
+		"  marklar a = 5;"
 		"  return a;"
 		"}"
-		"int foo() {"
-		"  int a = 4;"
+		"marklar foo() {"
+		"  marklar a = 4;"
 		"  return a;"
 		"}"
-		"int main() {"
-		"  int a = 3;"
+		"marklar main() {"
+		"  marklar a = 3;"
 		"  return a;"
 		"}";
 
@@ -171,7 +171,7 @@ TEST(DriverTest, MultipleFunction) {
 
 TEST(DriverTest, FunctionUseArgs) {
 	const auto testProgram =
-		"int main(int a) {"
+		"marklar main(marklar a) {"
 		"  return a;"
 		"}";
 
@@ -189,10 +189,10 @@ TEST(DriverTest, FunctionUseArgs) {
 
 TEST(DriverTest, FunctionCall) {
 	const auto testProgram =
-		"int foo(int a) {"
+		"marklar foo(marklar a) {"
 		"  return a + 1;"
 		"}"
-		"int main(int a) {"
+		"marklar main(marklar a) {"
 		"  return foo(a);"
 		"}";
 
@@ -210,7 +210,7 @@ TEST(DriverTest, FunctionCall) {
 
 TEST(DriverTest, FunctionIfStmtReturnSimple) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (3 < 4) {"
 		"    return 1;"
 		"  }"
@@ -229,9 +229,9 @@ TEST(DriverTest, FunctionIfStmtReturnSimple) {
 
 TEST(DriverTest, FunctionIfStmtReturn) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 3;"
-		"  int b = 4;"
+		"marklar main() {"
+		"  marklar a = 3;"
+		"  marklar b = 4;"
 		"  if (a < b) {"
 		"    return 1;"
 		"  }"
@@ -250,9 +250,9 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 
 TEST(DriverTest, FunctionIfElseStmtReturn) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 3;"
-		"  int b = 4;"
+		"marklar main() {"
+		"  marklar a = 3;"
+		"  marklar b = 4;"
 		"  if (a > b) {"
 		"    return 1;"
 		"  } else {"
@@ -273,7 +273,7 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 
 TEST(DriverTest, OperatorLessThan) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (3 < 4) {"
 		"    return 1;"
 		"  }"
@@ -292,7 +292,7 @@ TEST(DriverTest, OperatorLessThan) {
 
 TEST(DriverTest, OperatorGreaterThan) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (3 > 4) {"
 		"    return 1;"
 		"  }"
@@ -311,7 +311,7 @@ TEST(DriverTest, OperatorGreaterThan) {
 
 TEST(DriverTest, OperatorEqual) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (4 == 4) {"
 		"    return 1;"
 		"  }"
@@ -330,8 +330,8 @@ TEST(DriverTest, OperatorEqual) {
 
 TEST(DriverTest, OperatorModulo) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 5 % 3;"
+		"marklar main() {"
+		"  marklar a = 5 % 3;"
 		"  if (a == 2) {"
 		"    return 1;"
 		"  }"
@@ -350,9 +350,9 @@ TEST(DriverTest, OperatorModulo) {
 
 TEST(DriverTest, WhileStmt) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 2;"
-		"  int b = 6;"
+		"marklar main() {"
+		"  marklar a = 2;"
+		"  marklar b = 6;"
 		"  while (a < b) {"
 		"    a = a + 1;"
 		"  }"
@@ -371,9 +371,9 @@ TEST(DriverTest, WhileStmt) {
 
 TEST(DriverTest, LogicalOR) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 0;"
-		"  int b = 4;"
+		"marklar main() {"
+		"  marklar a = 0;"
+		"  marklar b = 4;"
 		"  if ((a == 0) || (b == 0)) {"
 		"    return 2;"
 		"  }"
@@ -392,8 +392,8 @@ TEST(DriverTest, LogicalOR) {
 
 TEST(DriverTest, Division) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 5 / 3;"
+		"marklar main() {"
+		"  marklar i = 5 / 3;"
 		"  return i;"
 		"}";
 
@@ -409,8 +409,8 @@ TEST(DriverTest, Division) {
 
 TEST(DriverTest, Subtraction) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 5 - 3;"
+		"marklar main() {"
+		"  marklar i = 5 - 3;"
 		"  return i;"
 		"}";
 

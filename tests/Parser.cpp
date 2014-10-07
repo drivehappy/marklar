@@ -7,7 +7,7 @@ using namespace marklar;
 
 TEST(ParserTest, BasicFunction) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -15,8 +15,8 @@ TEST(ParserTest, BasicFunction) {
 
 TEST(ParserTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
+		"marklar main() {"
+		"  marklar i = 0;"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -24,10 +24,10 @@ TEST(ParserTest, FunctionSingleDecl) {
 
 TEST(ParserTest, FunctionMultiDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
-		"  int j = 0;"
-		"  int k = 0;"
+		"marklar main() {"
+		"  marklar i = 0;"
+		"  marklar j = 0;"
+		"  marklar k = 0;"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -35,8 +35,8 @@ TEST(ParserTest, FunctionMultiDecl) {
 
 TEST(ParserTest, FunctionDeclAssign) {
 	const auto testProgram =
-		"int main() {"
-		"  int r = 1 + 2;"
+		"marklar main() {"
+		"  marklar r = 1 + 2;"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -44,10 +44,10 @@ TEST(ParserTest, FunctionDeclAssign) {
 
 TEST(ParserTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 1 + 2;"
-		"  int j = i + 2;"
-		"  int k = i + j;"
+		"marklar main() {"
+		"  marklar i = 1 + 2;"
+		"  marklar j = i + 2;"
+		"  marklar k = i + j;"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -55,7 +55,7 @@ TEST(ParserTest, FunctionMultiDeclAssign) {
 
 TEST(ParserTest, FunctionReturn) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  return 1;"
 		"}";
 
@@ -64,7 +64,7 @@ TEST(ParserTest, FunctionReturn) {
 
 TEST(ParserTest, FunctionReturnComplex) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
@@ -73,23 +73,23 @@ TEST(ParserTest, FunctionReturnComplex) {
 
 TEST(ParserTest, MultipleFunction) {
 	const auto testProgram =
-		"int foo() {}"
-		"int main() {}";
+		"marklar foo() {}"
+		"marklar main() {}";
 
 	EXPECT_TRUE(parse(testProgram));
 }
 
 TEST(ParserTest, MultipleComplexFunction) {
 	const auto testProgram =
-		"int bar() {"
-		"  int a = 0;"
-		"  int b = 2;"
+		"marklar bar() {"
+		"  marklar a = 0;"
+		"  marklar b = 2;"
 		"  return a + b + 0;"
 		"}"
-		"int foo() {"
+		"marklar foo() {"
 		"  return a + 0;"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return 0 + 1;"
 		"}";
 
@@ -98,7 +98,7 @@ TEST(ParserTest, MultipleComplexFunction) {
 
 TEST(ParserTest, FunctionArgs) {
 	const auto testProgram =
-		"int main(int a, int b) {"
+		"marklar main(marklar a, marklar b) {"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
@@ -106,8 +106,8 @@ TEST(ParserTest, FunctionArgs) {
 
 TEST(ParserTest, FunctionCall) {
 	const auto testProgram =
-		"int foo() {}"
-		"int main() {"
+		"marklar foo() {}"
+		"marklar main() {"
 		"  foo();"
 		"}";
 
@@ -116,8 +116,8 @@ TEST(ParserTest, FunctionCall) {
 
 TEST(ParserTest, FunctionCallArgs) {
 	const auto testProgram =
-		"int foo(int a) {}"
-		"int main() {"
+		"marklar foo(marklar a) {}"
+		"marklar main() {"
 		"  foo(45);"
 		"}";
 
@@ -126,11 +126,11 @@ TEST(ParserTest, FunctionCallArgs) {
 
 TEST(ParserTest, FunctionCallArgsComplex) {
 	const auto testProgram =
-		"int bar(int a, int b) {}"
-		"int foo(int a) {"
+		"marklar bar(marklar a, marklar b) {}"
+		"marklar foo(marklar a) {"
 		"  return bar(a, 5);"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return foo(45);"
 		"}";
 
@@ -139,7 +139,7 @@ TEST(ParserTest, FunctionCallArgsComplex) {
 
 TEST(ParserTest, FunctionIfStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (i < 4) {"
 		"  }"
 		"}";
@@ -149,7 +149,7 @@ TEST(ParserTest, FunctionIfStmt) {
 
 TEST(ParserTest, FunctionIfElseStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (i < 4) {"
 		"  } else {"
 		"  }"
@@ -160,8 +160,8 @@ TEST(ParserTest, FunctionIfElseStmt) {
 
 TEST(ParserTest, Assignment) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 0;"
+		"marklar main() {"
+		"  marklar a = 0;"
 		"  a = a + 1;"
 		"  return a;"
 		"}";
@@ -171,7 +171,7 @@ TEST(ParserTest, Assignment) {
 
 TEST(ParserTest, WhileStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  while (i < 4) {"
 		"    if (i > 5) {"
 		"    } else {"
@@ -184,9 +184,9 @@ TEST(ParserTest, WhileStmt) {
 
 TEST(ParserTest, LogicalOR) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 0;"
-		"  int b = 0;"
+		"marklar main() {"
+		"  marklar a = 0;"
+		"  marklar b = 0;"
 		"  if (a || b) {"
 		"    return 2;"
 		"  }"
@@ -198,8 +198,8 @@ TEST(ParserTest, LogicalOR) {
 
 TEST(ParserTest, Division) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 5 / 3;"
+		"marklar main() {"
+		"  marklar i = 5 / 3;"
 		"  return i;"
 		"}";
 
@@ -208,8 +208,8 @@ TEST(ParserTest, Division) {
 
 TEST(ParserTest, Subtraction) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 5 - 3;"
+		"marklar main() {"
+		"  marklar i = 5 - 3;"
 		"  return i;"
 		"}";
 
@@ -218,8 +218,8 @@ TEST(ParserTest, Subtraction) {
 
 TEST(ParserTest, RightShift) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 257 >> 8;"
+		"marklar main() {"
+		"  marklar i = 257 >> 8;"
 		"  return i;"
 		"}";
 
@@ -228,9 +228,9 @@ TEST(ParserTest, RightShift) {
 
 TEST(ParserTest, ComplexEulerProblem1) {
 	const auto testProgram =
-		"int main() {"
-		"  int sum = 0;"
-		"  int i = 0;"
+		"marklar main() {"
+		"  marklar sum = 0;"
+		"  marklar i = 0;"
 		"  while (i < 1000) {"
 		"    if (((i % 5) == 0) || ((i % 3) == 0)) {"
 		"      sum = sum + i;"

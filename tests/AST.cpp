@@ -15,7 +15,7 @@ using namespace std;
 
 TEST(ASTTest, BasicFunction) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"}";
 
 	base_expr_node root;
@@ -35,8 +35,8 @@ TEST(ASTTest, BasicFunction) {
 
 TEST(ASTTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
+		"marklar main() {"
+		"  marklar i = 0;"
 		"}";
 
 	base_expr_node root;
@@ -64,10 +64,10 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 TEST(ASTTest, FunctionMultiDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
-		"  int j = 1;"
-		"  int k = 2;"
+		"marklar main() {"
+		"  marklar i = 0;"
+		"  marklar j = 1;"
+		"  marklar k = 2;"
 		"}";
 
 	base_expr_node root;
@@ -108,8 +108,8 @@ TEST(ASTTest, FunctionMultiDecl) {
 
 TEST(ASTTest, FunctionDeclAssign) {
 	const auto testProgram =
-		"int main() {"
-		"  int r = 1 + 2;"
+		"marklar main() {"
+		"  marklar r = 1 + 2;"
 		"}";
 
 	base_expr_node root;
@@ -138,10 +138,10 @@ TEST(ASTTest, FunctionDeclAssign) {
 
 TEST(ASTTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 1 + 2;"
-		"  int j = i + 2;"
-		"  int k = i + j;"
+		"marklar main() {"
+		"  marklar i = 1 + 2;"
+		"  marklar j = i + 2;"
+		"  marklar k = i + j;"
 		"}";
 
 	base_expr_node root;
@@ -193,7 +193,7 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 
 TEST(ASTTest, FunctionReturn) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  return 1;"
 		"}";
 
@@ -220,7 +220,7 @@ TEST(ASTTest, FunctionReturn) {
 
 TEST(ASTTest, FunctionReturnComplex) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
@@ -240,8 +240,8 @@ TEST(ASTTest, FunctionReturnComplex) {
 
 TEST(ASTTest, MultipleFunction) {
 	const auto testProgram =
-		"int foo() {}"
-		"int main() {}";
+		"marklar foo() {}"
+		"marklar main() {}";
 
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
@@ -260,16 +260,16 @@ TEST(ASTTest, MultipleFunction) {
 
 TEST(ASTTest, MultipleComplexFunction) {
 	const auto testProgram =
-		"int bar() {"
-		"  int a = 0;"
-		"  int b = 2;"
+		"marklar bar() {"
+		"  marklar a = 0;"
+		"  marklar b = 2;"
 		"  return a + b + 0;"
 		"}"
-		"int foo() {"
-		"  int a = 0;"
+		"marklar foo() {"
+		"  marklar a = 0;"
 		"  return a + 0;"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return 0 + 1;"
 		"}";
 
@@ -282,7 +282,7 @@ TEST(ASTTest, MultipleComplexFunction) {
 
 TEST(ASTTest, FunctionArgs) {
 	const auto testProgram =
-		"int main(int a, int b) {"
+		"marklar main(marklar a, marklar b) {"
 		"}";
 
 	base_expr_node root;
@@ -301,8 +301,8 @@ TEST(ASTTest, FunctionArgs) {
 
 TEST(ASTTest, FunctionCall) {
 	const auto testProgram =
-		"int foo() {}"
-		"int main() {"
+		"marklar foo() {}"
+		"marklar main() {"
 		"  foo();"
 		"}";
 
@@ -328,10 +328,10 @@ TEST(ASTTest, FunctionCall) {
 
 TEST(ASTTest, FunctionCallArgs) {
 	const auto testProgram =
-		"int foo(int a) {"
+		"marklar foo(marklar a) {"
 		"  return a;"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return foo(45);"
 		"}";
 
@@ -363,11 +363,11 @@ TEST(ASTTest, FunctionCallArgs) {
 
 TEST(ASTTest, FunctionCallArgsComplex) {
 	const auto testProgram =
-		"int bar(int a, int b) {}"
-		"int foo(int a) {"
+		"marklar bar(marklar a, marklar b) {}"
+		"marklar foo(marklar a) {"
 		"  return bar(a, 5);"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return foo(45);"
 		"}";
 
@@ -406,7 +406,7 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 
 TEST(ASTTest, FunctionIfStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (i < 4) {"
 		"  }"
 		"}";
@@ -435,11 +435,11 @@ TEST(ASTTest, FunctionIfStmt) {
 
 TEST(ASTTest, FunctionIfElseStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (i < 4) {"
-		"    int j = 0;"
+		"    marklar j = 0;"
 		"  } else {"
-		"    int k = 0;"
+		"    marklar k = 0;"
 		"  }"
 		"}";
 
@@ -458,8 +458,8 @@ TEST(ASTTest, FunctionIfElseStmt) {
 
 TEST(ASTTest, Assignment) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 3;"
+		"marklar main() {"
+		"  marklar a = 3;"
 		"  a = a + 1;"
 		"}";
 
@@ -495,7 +495,7 @@ TEST(ASTTest, Assignment) {
 
 TEST(ASTTest, WhileStmt) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  while (i < 4) {"
 		"  }"
 		"}";

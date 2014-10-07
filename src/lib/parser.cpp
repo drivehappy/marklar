@@ -109,7 +109,7 @@ namespace parser {
 			rootNode %= qi::eps >> +funcExpr;
 
 			funcExpr %=
-				  "int"
+				  "marklar"
 				>> varName
 				>> '(' >> *(varDef % ',') >> ')'
 				>> '{'
@@ -120,7 +120,7 @@ namespace parser {
 				;
 
 			varDef %=
-				  "int"
+				  "marklar"
 				>> varName
 				;
 

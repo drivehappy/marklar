@@ -1,11 +1,11 @@
-int main() {
-	int r = 0;
+marklar main() {
+	marklar r = 0;
 
-	int flag = 1;
+	marklar flag = 1;
 	while (flag == 1) {
 		r = r + 1;
 
-		int i = 2;
+		marklar i = 2;
 		while (i < 21) {
 			if ((r % i) == 0) {
 				if (i == 20) {
@@ -20,5 +20,5 @@ int main() {
 		}
 	}
 
-	return (r >> 8);
+	return r;
 }

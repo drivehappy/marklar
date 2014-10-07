@@ -1,4 +1,4 @@
-int main() {
+marklar main() {
   if (3 > 4) {
 	return 1;
   }

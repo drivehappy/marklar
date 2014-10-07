@@ -43,7 +43,7 @@ namespace {
 
 TEST(CodegenTest, BasicFunction) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"}";
 
 	base_expr_node root;
@@ -59,8 +59,8 @@ TEST(CodegenTest, BasicFunction) {
  
 TEST(CodegenTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
+		"marklar main() {"
+		"  marklar i = 0;"
 		"}";
 
 	base_expr_node root;
@@ -76,8 +76,8 @@ TEST(CodegenTest, FunctionSingleDecl) {
  
 TEST(CodegenTest, FunctionSingleDeclReturn) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 0;"
+		"marklar main() {"
+		"  marklar i = 0;"
 		"  return i;"
 		"}";
 
@@ -93,10 +93,10 @@ TEST(CodegenTest, FunctionSingleDeclReturn) {
 
 TEST(CodegenTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 1 + 2;"
-		"  int j = i + 2;"
-		"  int k = i + j;"
+		"marklar main() {"
+		"  marklar i = 1 + 2;"
+		"  marklar j = i + 2;"
+		"  marklar k = i + j;"
 		"  return k;"
 		"}";
 
@@ -112,9 +112,9 @@ TEST(CodegenTest, FunctionMultiDeclAssign) {
 
 TEST(CodegenTest, FunctionMultiDeclSum) {
 	const auto testProgram =
-		"int main() {"
-		"  int i = 2;"
-		"  int j = 5;"
+		"marklar main() {"
+		"  marklar i = 2;"
+		"  marklar j = 5;"
 		"  return i + j;"
 		"}";
 
@@ -130,16 +130,16 @@ TEST(CodegenTest, FunctionMultiDeclSum) {
 
 TEST(CodegenTest, MultipleFunction) {
 	const auto testProgram =
-		"int bar() {"
-		"  int a = 0;"
-		"  int b = 2;"
+		"marklar bar() {"
+		"  marklar a = 0;"
+		"  marklar b = 2;"
 		"  return a + b + 0;"
 		"}"
-		"int foo() {"
-		"  int a = 4;"
+		"marklar foo() {"
+		"  marklar a = 4;"
 		"  return a + 0;"
 		"}"
-		"int main() {"
+		"marklar main() {"
 		"  return 0 + 1;"
 		"}";
 
@@ -155,7 +155,7 @@ TEST(CodegenTest, MultipleFunction) {
 
 TEST(CodegenTest, FunctionArgs) {
 	const auto testProgram =
-		"int main(int a, int b) {"
+		"marklar main(marklar a, marklar b) {"
 		"  return 1;"
 		"}";
 
@@ -171,11 +171,11 @@ TEST(CodegenTest, FunctionArgs) {
 
 TEST(CodegenTest, FunctionMultipleArgs) {
 	const auto testProgram =
-		"int bar(int a) {"
-		"  int b = 2;"
+		"marklar bar(marklar a) {"
+		"  marklar b = 2;"
 		"  return 1 + b + 0;"
 		"}"
-		"int main(int a, int b) {"
+		"marklar main(marklar a, marklar b) {"
 		"  return 1;"
 		"}";
 
@@ -191,7 +191,7 @@ TEST(CodegenTest, FunctionMultipleArgs) {
 
 TEST(CodegenTest, FunctionUseArgs) {
 	const auto testProgram =
-		"int main(int a) {"
+		"marklar main(marklar a) {"
 		"  return a;"
 		"}";
 
@@ -207,10 +207,10 @@ TEST(CodegenTest, FunctionUseArgs) {
 
 TEST(CodegenTest, FunctionCall) {
 	const auto testProgram =
-		"int foo(int a) {"
+		"marklar foo(marklar a) {"
 		"  return a + 1;"
 		"}"
-		"int main(int a) {"
+		"marklar main(marklar a) {"
 		"  return foo(a);"
 		"}";
 
@@ -226,7 +226,7 @@ TEST(CodegenTest, FunctionCall) {
 
 TEST(CodegenTest, OperatorGreaterThan) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (3 > 4) {"
 		"    return 1;"
 		"  }"
@@ -245,7 +245,7 @@ TEST(CodegenTest, OperatorGreaterThan) {
 
 TEST(CodegenTest, OperatorEqual) {
 	const auto testProgram =
-		"int main() {"
+		"marklar main() {"
 		"  if (4 == 4) {"
 		"    return 1;"
 		"  }"
@@ -264,8 +264,8 @@ TEST(CodegenTest, OperatorEqual) {
 
 TEST(CodegenTest, OperatorModulo) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 5 % 3;"
+		"marklar main() {"
+		"  marklar a = 5 % 3;"
 		"  if (a == 2) {"
 		"    return 1;"
 		"  }"
@@ -284,8 +284,8 @@ TEST(CodegenTest, OperatorModulo) {
 
 TEST(CodegenTest, Assignment) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 3;"
+		"marklar main() {"
+		"  marklar a = 3;"
 		"  a = a + 1;"
 		"  return a;"
 		"}";
@@ -302,9 +302,9 @@ TEST(CodegenTest, Assignment) {
 
 TEST(CodegenTest, WhileStmt) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 2;"
-		"  int b = 6;"
+		"marklar main() {"
+		"  marklar a = 2;"
+		"  marklar b = 6;"
 		"  while (a < b) {"
 		"    a = a + 1;"
 		"  }"
@@ -323,9 +323,9 @@ TEST(CodegenTest, WhileStmt) {
 
 TEST(CodegenTest, LogicalOR) {
 	const auto testProgram =
-		"int main() {"
-		"  int a = 0;"
-		"  int b = 0;"
+		"marklar main() {"
+		"  marklar a = 0;"
+		"  marklar b = 0;"
 		"  if ((a == 0) || (b == 0)) {"
 		"    return 2;"
 		"  }"

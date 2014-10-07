@@ -1,6 +1,6 @@
-int main() {
-	int sum = 0;
-	int i = 0;
+marklar main() {
+	marklar sum = 0;
+	marklar i = 0;
 
 	while (i < 1000) {
 		if (((i % 5) == 0) || ((i % 3) == 0)) {
