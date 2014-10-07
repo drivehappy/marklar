@@ -33,9 +33,13 @@ namespace {
 Value* ast_codegen::operator()(const string& val) {
 	//cerr << "Generating code for string \"" << val << "\"" << endl;
 
+	BasicBlock *bb = m_builder.GetInsertBlock();
+	Function *TheFunction = bb->getParent();
+	const string varName = string(TheFunction->getName()) + "_" + val;
+
 	Value *retVal = nullptr;
 
-	map<string, Value*>::iterator itr = m_symbolTable.find(val);
+	map<string, Value*>::iterator itr = m_symbolTable.find(varName);
 	if (itr != m_symbolTable.end()) {
 		Value* const localVar = itr->second;
 
@@ -115,8 +119,10 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	// Add function arguments
 	Function::arg_iterator argItr = F->arg_begin();
 	for (auto& argStr : func.args) {
-		argItr->setName(argStr);
-		m_symbolTable[argStr] = argItr;
+		const string argName = string(F->getName()) + "_" + argStr;
+
+		argItr->setName(argName);
+		m_symbolTable[argName] = argItr;
 	}
 
 	// Created a new visitor, this allows function-level scoping so our symbol table
@@ -153,32 +159,35 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 
 	Value* var = nullptr;
 
-	map<string, Value*>::const_iterator itr = m_symbolTable.find(decl.declName);
+	BasicBlock *bb = m_builder.GetInsertBlock();
+	Function *TheFunction = bb->getParent();
+
+	const string declName = string(TheFunction->getName()) + "_" + decl.declName;
+
+	map<string, Value*>::const_iterator itr = m_symbolTable.find(declName);
 	if (itr == m_symbolTable.end()) {
 		//cerr << "  Variable referenced for first time: " << decl.declName << endl;
 
-		BasicBlock *bb = m_builder.GetInsertBlock();
 		AllocaInst *Alloca = nullptr;
 
 		// If there is no basic block it indicates it might be at the global-level
 		if (bb) {
-			Function *TheFunction = bb->getParent();
 			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, decl.declName.c_str());
+			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, declName.c_str());
 
-			m_symbolTable[decl.declName] = Alloca;
+			m_symbolTable[declName] = Alloca;
 		} else {
 			// Check if the function was already declared, if not then build it
-			auto itr = m_symbolTable.find(decl.declName);
+			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
 				// Assume for now this has no arguments
 				vector<Type*> args(0, Type::getInt32Ty(getGlobalContext()));
 
 				FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
-				Function *F = Function::Create(FT, Function::ExternalLinkage, decl.declName, m_module);
+				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
 
 				// Add this function to the symbol table
-				m_symbolTable[decl.declName] = F;
+				m_symbolTable[declName] = F;
 			}
 		}
 
@@ -192,7 +201,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 	if (exprRhs) {
 		// Don't just obtain the variable from codegen, since that produces a load...
 		// instead just look it up directly
-		const auto itr = m_symbolTable.find(decl.declName);
+		const auto itr = m_symbolTable.find(declName);
 		if (itr != m_symbolTable.end()) {
 			if (exprRhs->getType()->isPointerTy()) {
 				Value *varLhs = m_builder.CreateLoad(exprRhs);
@@ -201,7 +210,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				m_builder.CreateStore(exprRhs, itr->second);
 			}
 		} else {
-			cerr << "ERROR: Could not find variable: " << decl.declName << endl;
+			cerr << "ERROR: Could not find variable: " << declName << endl;
 			return nullptr;
 		}
 	}
@@ -442,9 +451,13 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	//cerr << "Generating code for variable assignment of \"" << assign.varName << "\"" << endl;
 
+	BasicBlock *bb = m_builder.GetInsertBlock();
+	Function *TheFunction = bb->getParent();
+	const string varName = string(TheFunction->getName()) + "_" + assign.varName;
+
 	Value* const rhsVal = boost::apply_visitor(*this, assign.varRhs);
 
-	const auto& itr = m_symbolTable.find(assign.varName);
+	const auto& itr = m_symbolTable.find(varName);
 	if (itr == m_symbolTable.end()) {
 		cerr << "Unknown variable assignment: \"" << assign.varName << "\"" << endl;
 		return nullptr;

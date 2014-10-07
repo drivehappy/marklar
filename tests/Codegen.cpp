@@ -342,4 +342,25 @@ TEST(CodegenTest, LogicalOR) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, SameVariableNameDiffFunctions) {
+	const auto testProgram =
+		"marklar fib(marklar a) {"
+		"  return a;"
+		"}"
+		"marklar main() {"
+		"  marklar a = 10;"
+		"  return fib(a);"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+
 
