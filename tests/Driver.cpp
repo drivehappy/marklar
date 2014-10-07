@@ -407,5 +407,21 @@ TEST(DriverTest, Division) {
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, Subtraction) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 5 - 3;"
+		"  return i;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(2, runExecutable(g_outputExe));
+}
 
 

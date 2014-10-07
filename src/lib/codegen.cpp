@@ -365,10 +365,12 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 	//cerr << "Generating code for binary_op:" << endl;
 
 	typedef Value* (IRBuilder<>::*logical_t)(Value*, Value*, const Twine&);
+	typedef Value* (IRBuilder<>::*shift_t)(Value*, Value*, const Twine&, bool);
 
 	// Mapping of operator to LLVM creation calls
 	const map<string, std::function<Value*(Value*, Value*)>> ops = {
 		{ "+",  bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
+		{ "-",  bind(&IRBuilder<>::CreateSub,     m_builder, _1, _2, "sub", false, false) },
 		{ "<",  bind(&IRBuilder<>::CreateICmpSLT, m_builder, _1, _2, "cmp") },
 		{ ">",  bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
 		{ "%",  bind(&IRBuilder<>::CreateSRem,    m_builder, _1, _2, "rem") },
@@ -376,6 +378,8 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		{ "==", bind(&IRBuilder<>::CreateICmpEQ,  m_builder, _1, _2, "cmp") },
 		{ "||", bind(static_cast<logical_t>
 		            (&IRBuilder<>::CreateOr),     m_builder, _1, _2, "or")  },
+		{ ">>", bind(static_cast<shift_t>
+		            (&IRBuilder<>::CreateLShr),   m_builder, _1, _2, "shr", false) },
 	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);
@@ -424,8 +428,7 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 
 	// Generate the loop body
 	for (const auto& itrBody : loop.loopBody) {
-		Value* const loopBody = boost::apply_visitor(symbolVisitor, itrBody);
-		assert(loopBody);
+		boost::apply_visitor(symbolVisitor, itrBody);
 	}
 
 	m_builder.CreateBr(loopCond);

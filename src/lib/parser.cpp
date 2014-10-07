@@ -184,10 +184,14 @@ namespace parser {
 			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			intLiteral %= +qi::char_("0-9");
 			value %= (varName | intLiteral);
+
+			// '>>' before the next '>' or else it will be matched as greater-than
 			op %=
-				  qi::char_("+<>%/")
-				| (qi::char_("=") >> qi::char_("="))
-				| (qi::char_("|") >> qi::char_("|"))
+				  ascii::string(">>")	
+				| qi::char_("+<>%/")
+				| qi::char_("\\-")
+				| ascii::string("==")
+				| ascii::string("||")
 				;
 
 			// Debugging

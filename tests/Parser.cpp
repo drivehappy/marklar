@@ -206,6 +206,26 @@ TEST(ParserTest, Division) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, Subtraction) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 5 - 3;"
+		"  return i;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, RightShift) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 257 >> 8;"
+		"  return i;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
 TEST(ParserTest, ComplexEulerProblem1) {
 	const auto testProgram =
 		"int main() {"
