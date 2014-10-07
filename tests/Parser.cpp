@@ -196,4 +196,30 @@ TEST(ParserTest, LogicalOR) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, Division) {
+	const auto testProgram =
+		"int main() {"
+		"  int i = 5 / 3;"
+		"  return i;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, ComplexEulerProblem1) {
+	const auto testProgram =
+		"int main() {"
+		"  int sum = 0;"
+		"  int i = 0;"
+		"  while (i < 1000) {"
+		"    if (((i % 5) == 0) || ((i % 3) == 0)) {"
+		"      sum = sum + i;"
+		"    }"
+		"    i = i + 1;"
+		"  }"
+		"  return sum;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
 
