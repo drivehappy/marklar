@@ -226,6 +226,16 @@ TEST(ParserTest, RightShift) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, Multiplication) {
+	const auto testProgram =
+		"marklar main() {"
+		"  marklar i = 8 * 4;"
+		"  return i;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
 TEST(ParserTest, ComplexEulerProblem1) {
 	const auto testProgram =
 		"marklar main() {"

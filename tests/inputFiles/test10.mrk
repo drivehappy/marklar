@@ -1,0 +1,17 @@
+marklar main() {
+	marklar sum = 0;
+	marklar i = 1;
+	marklar prev = 0;
+
+	while (i < 4000000) {
+		marklar tmp = i;
+		i = (i + prev);
+		prev = tmp;
+
+		if ((i % 2) == 0) {
+			sum = sum + i;
+		}
+	}
+	
+	return (sum);
+}
