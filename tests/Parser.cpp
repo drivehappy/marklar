@@ -182,3 +182,18 @@ TEST(ParserTest, WhileStmt) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, LogicalOR) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 0;"
+		"  int b = 0;"
+		"  if (a || b) {"
+		"    return 2;"
+		"  }"
+		"  return 1;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+

@@ -364,6 +364,8 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 Value* ast_codegen::operator()(const parser::binary_op& op) {
 	//cerr << "Generating code for binary_op:" << endl;
 
+	typedef Value* (IRBuilder<>::*logical_t)(Value*, Value*, const Twine&);
+
 	// Mapping of operator to LLVM creation calls
 	const map<string, std::function<Value*(Value*, Value*)>> ops = {
 		{ "+",  bind(&IRBuilder<>::CreateAdd,     m_builder, _1, _2, "add", false, false) },
@@ -371,6 +373,8 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		{ ">",  bind(&IRBuilder<>::CreateICmpSGT, m_builder, _1, _2, "cmp") },
 		{ "%",  bind(&IRBuilder<>::CreateSRem,    m_builder, _1, _2, "rem") },
 		{ "==", bind(&IRBuilder<>::CreateICmpEQ,  m_builder, _1, _2, "cmp") },
+		{ "||", bind(static_cast<logical_t>
+		            (&IRBuilder<>::CreateOr),     m_builder, _1, _2, "or")  },
 	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);

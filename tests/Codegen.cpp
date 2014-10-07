@@ -321,3 +321,25 @@ TEST(CodegenTest, WhileStmt) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, LogicalOR) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 0;"
+		"  int b = 0;"
+		"  if ((a == 0) || (b == 0)) {"
+		"    return 2;"
+		"  }"
+		"  return 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+

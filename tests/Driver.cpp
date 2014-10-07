@@ -369,3 +369,25 @@ TEST(DriverTest, WhileStmt) {
 	EXPECT_EQ(6, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, LogicalOR) {
+	const auto testProgram =
+		"int main() {"
+		"  int a = 0;"
+		"  int b = 4;"
+		"  if ((a == 0) || (b == 0)) {"
+		"    return 2;"
+		"  }"
+		"  return 1;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(2, runExecutable(g_outputExe));
+}
+
+
