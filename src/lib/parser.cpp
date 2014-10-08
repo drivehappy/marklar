@@ -185,11 +185,15 @@ namespace parser {
 
 			// '>>' before the next '>' or else it will be matched as greater-than
 			op %=
-				  ascii::string(">>")	
-				| qi::char_("+<>%/*")
-				| qi::char_("\\-")
+				  ascii::string(">>")
+				| ascii::string("<<")
+				| ascii::string(">=")
+				| ascii::string("<=")
+				| ascii::string("!=")
 				| ascii::string("==")
 				| ascii::string("||")
+				| qi::char_("+<>%/*&")
+				| qi::char_("\\-")
 				;
 
 			// Debugging

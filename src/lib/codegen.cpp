@@ -391,7 +391,8 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 	//cerr << "Generating code for binary_op:" << endl;
 
 	typedef Value* (IRBuilder<>::*logical_t)(Value*, Value*, const Twine&);
-	typedef Value* (IRBuilder<>::*shift_t)(Value*, Value*, const Twine&, bool);
+	typedef Value* (IRBuilder<>::*shiftRight_t)(Value*, Value*, const Twine&, bool);
+	typedef Value* (IRBuilder<>::*shiftLeft_t)(Value*, Value*, const Twine&, bool, bool);
 
 	// Mapping of operator to LLVM creation calls
 	const map<string, std::function<Value*(Value*, Value*)>> ops = {
@@ -402,11 +403,18 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		{ "%",  bind(&IRBuilder<>::CreateSRem,    m_builder, _1, _2, "rem") },
 		{ "/",  bind(&IRBuilder<>::CreateSDiv,    m_builder, _1, _2, "div", false) },
 		{ "*",  bind(&IRBuilder<>::CreateMul,     m_builder, _1, _2, "mult", false, false) },
+		{ ">=", bind(&IRBuilder<>::CreateICmpSGE, m_builder, _1, _2, "cmp") },
+		{ "<=", bind(&IRBuilder<>::CreateICmpSLE, m_builder, _1, _2, "cmp") },
 		{ "==", bind(&IRBuilder<>::CreateICmpEQ,  m_builder, _1, _2, "cmp") },
+		{ "!=", bind(&IRBuilder<>::CreateICmpNE,  m_builder, _1, _2, "cmp") },
+		{ "&",  bind(static_cast<logical_t>
+		            (&IRBuilder<>::CreateAnd),    m_builder, _1, _2, "and") },
 		{ "||", bind(static_cast<logical_t>
 		            (&IRBuilder<>::CreateOr),     m_builder, _1, _2, "or")  },
-		{ ">>", bind(static_cast<shift_t>
+		{ ">>", bind(static_cast<shiftRight_t>
 		            (&IRBuilder<>::CreateLShr),   m_builder, _1, _2, "shr", false) },
+		{ "<<", bind(static_cast<shiftLeft_t>
+		            (&IRBuilder<>::CreateShl),    m_builder, _1, _2, "shl", false, false) },
 	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);

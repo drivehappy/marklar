@@ -1,0 +1,58 @@
+
+marklar sqrt(marklar n) {
+	marklar _COMMENT_implementation_used_from___stackoverflow_com_a_1101217;
+
+	marklar op = n;
+	marklar res = 0;
+	marklar one = 1 << 30;
+
+	while (one > op) {
+		one = one >> 2;
+	}
+
+	while (one != 0) {
+		if (op >= (res + one)) {
+			op = op - (res + one);
+			res = res + (2 * one);
+		}
+
+		res = res >> 1;
+		one = one >> 2;
+	}
+
+	return res;
+}
+
+marklar isPrime(marklar n) {
+	if (((n & 1) == 0)) {
+		if (n != 2) {
+			return 0;
+		}
+	}
+
+	marklar i = sqrt(n);
+	while (i >= 3) {
+		if ((n % i) == 0) {
+			return 0;
+		}
+		i = i - 1;
+	}
+
+	return 1;
+}
+
+marklar main() {
+	marklar n = 1;
+	marklar primeCount = 0;
+
+	while (primeCount < 10001) {
+		n = n + 1;
+
+		if (isPrime(n) == 1) {
+			primeCount = primeCount + 1;
+		}
+	}
+
+	return (n >> 8);
+}
+
