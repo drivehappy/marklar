@@ -51,7 +51,7 @@ Value* ast_codegen::operator()(const string& val) {
 			retVal = localVar;
 		}
 	} else if (is_number(val)) {
-		APInt vInt(32, stoi(val));
+		APInt vInt(64, stol(val));
 		retVal = ConstantInt::get(getGlobalContext(), vInt);
 	} else {
 		cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
@@ -90,8 +90,8 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	auto itr = m_symbolTable.find(func.functionName);
 	if (itr == m_symbolTable.end()) {
 		// Could not find existing function with this name, build it
-		vector<Type*> args(func.args.size(), Type::getInt32Ty(getGlobalContext()));
-		FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
+		vector<Type*> args(func.args.size(), Type::getInt64Ty(getGlobalContext()));
+		FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
 		// Add it to the symbol table so we can refer to it later
@@ -105,11 +105,11 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Build a return value in place
 	IRBuilder<> TmpB(&F->getEntryBlock(), F->getEntryBlock().begin());
-	AllocaInst* const Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, "__retval__");
+	AllocaInst* const Alloca = TmpB.CreateAlloca(Type::getInt64Ty(getGlobalContext()), nullptr, "__retval__");
 	assert(Alloca);
 	m_symbolTable["__retval__"] = Alloca;
 
-	APInt vInt(32, 0);
+	APInt vInt(64, 0);
 	m_builder.CreateStore(ConstantInt::get(getGlobalContext(), vInt), Alloca);
 
 	BasicBlock *ReturnBB = BasicBlock::Create(getGlobalContext(), "return");
@@ -183,7 +183,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 		// If there is no basic block it indicates it might be at the global-level
 		if (bb) {
 			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, declName.c_str());
+			Alloca = TmpB.CreateAlloca(Type::getInt64Ty(getGlobalContext()), nullptr, declName.c_str());
 
 			m_symbolTable[declName] = Alloca;
 		} else {
@@ -191,9 +191,9 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
 				// Assume for now this has no arguments
-				vector<Type*> args(0, Type::getInt32Ty(getGlobalContext()));
+				vector<Type*> args(0, Type::getInt64Ty(getGlobalContext()));
 
-				FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
+				FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
 				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
 
 				// Add this function to the symbol table
@@ -247,7 +247,7 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 #if 0	
 	if (m_returnGenerated) {
 		/*
-		APInt vInt(32, stoi(val));
+		APInt vInt(64, stoi(val));
 		defaultRet = ConstantInt::get(getGlobalContext(), vInt);
 
 		m_builder.CreateStore(defaultRet, retVal);

@@ -6,16 +6,18 @@ marklar main() {
 		r = r + 1;
 
 		marklar i = 20;
-		while (i > 1) {
-			if ((r % i) == 0) {
-				if (i == 2) {
-					flag = 0;
+		if ((r & 1) == 0) {
+			while (i > 1) {
+				if ((r % i) == 0) {
+					if (i == 2) {
+						flag = 0;
+						i = 0;
+					}
+
+					i = i - 1;
+				} else {
 					i = 0;
 				}
-
-				i = i - 1;
-			} else {
-				i = 0;
 			}
 		}
 	}
