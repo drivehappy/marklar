@@ -464,13 +464,13 @@ TEST(DriverTest, MultiMethods) {
 TEST(DriverTest, FuncCallInIfStmt) {
 	const auto testProgram =
 		"marklar func1(marklar a) {"
-		"	return 0;"
+		"	return a + 5;"
 		"}"
 		"marklar main() {"
-		"	if (func1(1) > 0) {"
+		"	if (func1(10) < 15) {"
 		"		return 1;"
 		"	}"
-		"   return 0;"
+		"   return func1(10);"
 		"}";
 
 	// Cleanup generated intermediate and executable files

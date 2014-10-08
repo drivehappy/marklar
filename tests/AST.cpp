@@ -524,14 +524,14 @@ TEST(ASTTest, WhileStmt) {
 
 TEST(ASTTest, FuncCallInIfStmt) {
 	const auto testProgram =
-		"marklar foo(marklar a) {"
-		"  return a;"
+		"marklar func1(marklar a) {"
+		"  return 0;"
 		"}"
 		"marklar main() {"
-		"  if (foo(45) == 0)"
-		"    return 0;"
+		"  if (func1(45) > 0) {"
+		"    return 1;"
 		"  }"
-		"  return 1;"
+		"  return 0;"
 		"}";
 
 	base_expr_node root;
@@ -546,22 +546,8 @@ TEST(ASTTest, FuncCallInIfStmt) {
 	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
 	EXPECT_TRUE(exprIf != nullptr);
 
-	/*
-	binary_op* val1 = boost::get<binary_op>(&callExpr->values[0]);
-	EXPECT_NE(nullptr, val1);
-
-	string* val1Str = boost::get<string>(&val1->lhs);
-	EXPECT_NE(nullptr, val1Str);
-	EXPECT_EQ("a", *val1Str);
-
-	binary_op* val2 = boost::get<binary_op>(&callExpr->values[1]);
-	EXPECT_NE(nullptr, val2);
-
-	string* val2Str = boost::get<string>(&val2->lhs);
-	EXPECT_NE(nullptr, val2Str);
-	EXPECT_EQ("5", *val2Str);
-	*/
+	call_expr* callExpr = boost::get<call_expr>(&exprIf->condition.lhs);
+	EXPECT_NE(nullptr, callExpr);
 }
-
 
 

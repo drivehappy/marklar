@@ -259,7 +259,7 @@ TEST(ParserTest, FuncCallInIfStmt) {
 		"  return 0;"
 		"}"
 		"marklar main() {"
-		"  if (func1(1) > 0) {"
+		"  if (func1(45) > 0) {"
 		"    return 1;"
 		"  }"
 		"  return 0;"

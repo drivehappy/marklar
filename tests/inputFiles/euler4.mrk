@@ -36,6 +36,6 @@ marklar main() {
 		a = a - 1;
 	}
 
-	return palindrome_test;
+	return (palindrome_test >> 0);
 }
 
