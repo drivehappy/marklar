@@ -72,7 +72,7 @@ namespace marklar {
 			{
 				cout << "Optimizing..." << endl;
 
-				const string optCmd = "opt-3.5 -filetype=obj -o " + tmpOptBCName + " output.bc";
+				const string optCmd = "opt-3.5 -filetype=obj -o " + tmpOptBCName + " -O3 -loop-unroll output.bc";
 
 				const int retval = system(optCmd.c_str());
 				if (retval != 0) {
