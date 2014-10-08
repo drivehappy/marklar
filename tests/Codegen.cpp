@@ -224,6 +224,34 @@ TEST(CodegenTest, FunctionCall) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, IfElseStmt) {
+	const auto testProgram =
+		"marklar main() {"
+		"  if (3 > 4) {"
+		"    return 1;"
+		"  } else {"
+		"    return 2;"
+		"  }"
+		"  return 3;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	auto module = codegenTest(root);
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	module->print(errorOut, nullptr);
+	cerr << "Debug:" << errorInfo << endl;
+	if (verifyModule(*module, &errorOut)) {
+		cerr << "Error: " << errorInfo << endl;
+	}
+
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
 TEST(CodegenTest, OperatorGreaterThan) {
 	const auto testProgram =
 		"marklar main() {"
@@ -361,6 +389,29 @@ TEST(CodegenTest, SameVariableNameDiffFunctions) {
 	auto module = codegenTest(root);
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
+
+TEST(CodegenTest, FuncCallInIfStmt) {
+	const auto testProgram =
+		"marklar func1(marklar a) {"
+		"	return 0;"
+		"}"
+		"marklar main() {"
+		"	if (func1(1) > 0) {"
+		"		return 1;"
+		"	}"
+		"   return 0;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
 
 
 

@@ -16,9 +16,6 @@
 #include <string>
 #include <vector>
 
-// Debug
-#include <iostream>
-
 
 using namespace std;
 
@@ -106,7 +103,7 @@ namespace parser {
 		{
 			start %= rootNode;
 
-			rootNode %= qi::eps >> +funcExpr;
+			rootNode %= qi::eps >> +funcExpr >> qi::eoi;
 
 			funcExpr %=
 				  "marklar"
@@ -135,8 +132,8 @@ namespace parser {
 				>> *(op >> factor);
 
 			factor %=
-				   qi::lit('(') >> op_expr >> ')'
-				|  value;
+				  qi::lit('(') >> op_expr >> ')'
+				| value;
 
 			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
 
@@ -209,6 +206,12 @@ namespace parser {
 			BOOST_SPIRIT_DEBUG_NODE(factor);
 			BOOST_SPIRIT_DEBUG_NODE(whileLoop);
 			*/
+			BOOST_SPIRIT_DEBUG_NODE(funcExpr);
+			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
+			BOOST_SPIRIT_DEBUG_NODE(callExpr);
+			BOOST_SPIRIT_DEBUG_NODE(op_expr);
+			BOOST_SPIRIT_DEBUG_NODE(start);
+			BOOST_SPIRIT_DEBUG_NODE(rootNode);
 		}
 
 		qi::rule<Iterator, base_expr_node(), qi::space_type> start;

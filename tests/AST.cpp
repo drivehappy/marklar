@@ -522,3 +522,46 @@ TEST(ASTTest, WhileStmt) {
 	EXPECT_EQ("4", *exprLoopOpRhs);
 }
 
+TEST(ASTTest, FuncCallInIfStmt) {
+	const auto testProgram =
+		"marklar foo(marklar a) {"
+		"  return a;"
+		"}"
+		"marklar main() {"
+		"  if (foo(45) == 0)"
+		"    return 0;"
+		"  }"
+		"  return 1;"
+		"}";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	base_expr* expr = boost::get<base_expr>(&root);
+	EXPECT_NE(nullptr, expr);
+
+	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
+	EXPECT_NE(nullptr, exprF_main);
+	
+	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
+	EXPECT_TRUE(exprIf != nullptr);
+
+	/*
+	binary_op* val1 = boost::get<binary_op>(&callExpr->values[0]);
+	EXPECT_NE(nullptr, val1);
+
+	string* val1Str = boost::get<string>(&val1->lhs);
+	EXPECT_NE(nullptr, val1Str);
+	EXPECT_EQ("a", *val1Str);
+
+	binary_op* val2 = boost::get<binary_op>(&callExpr->values[1]);
+	EXPECT_NE(nullptr, val2);
+
+	string* val2Str = boost::get<string>(&val2->lhs);
+	EXPECT_NE(nullptr, val2Str);
+	EXPECT_EQ("5", *val2Str);
+	*/
+}
+
+
+

@@ -441,5 +441,50 @@ TEST(DriverTest, Multiplication) {
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, MultiMethods) {
+	const auto testProgram =
+		"marklar a() {"
+		"  return 1;"
+		"}"
+		"marklar main() {"
+		"  marklar i = 5 * 3;"
+		"  return i;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(15, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, FuncCallInIfStmt) {
+	const auto testProgram =
+		"marklar func1(marklar a) {"
+		"	return 0;"
+		"}"
+		"marklar main() {"
+		"	if (func1(1) > 0) {"
+		"		return 1;"
+		"	}"
+		"   return 0;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(15, runExecutable(g_outputExe));
+}
+
+
+
+
 
 

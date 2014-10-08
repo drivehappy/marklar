@@ -253,3 +253,19 @@ TEST(ParserTest, ComplexEulerProblem1) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, FuncCallInIfStmt) {
+	const auto testProgram =
+		"marklar func1(marklar a) {"
+		"  return 0;"
+		"}"
+		"marklar main() {"
+		"  if (func1(1) > 0) {"
+		"    return 1;"
+		"  }"
+		"  return 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+

@@ -41,7 +41,6 @@ namespace marklar {
 		llvm::IRBuilder<>& m_builder;
 
 		symbolType_t m_symbolTable;
-		bool m_returnGenerated = false;
 	};
 
 }

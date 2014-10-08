@@ -82,7 +82,7 @@ Value* ast_codegen::operator()(const parser::base_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::func_expr& func) {
-	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
+	cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
 
@@ -125,7 +125,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		m_symbolTable[argName] = argItr;
 	}
 
-	// Created a new visitor, this allows function-level scoping so our symbol table
+	// Create a new visitor, this allows function-level scoping so our symbol table
 	// isn't re-used across other functions
 	ast_codegen symbolVisitor(*this);
 
@@ -134,9 +134,19 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		boost::apply_visitor(symbolVisitor, itrDecl);
 	}
 
+	// Default this to something other than nullptr, in cases where we
+	// don't have a return we may not actually generate a return stmt below
+	Value* lastExpr = ReturnBB;
+
 	// Visit expressions inside the function node
 	for (auto& itrExpr : func.expressions) {
-		boost::apply_visitor(symbolVisitor, itrExpr);
+		lastExpr = boost::apply_visitor(symbolVisitor, itrExpr);
+
+		// Indicates that all paths branched (in the current case, this means everything returned)
+		// and we didn't create an "if.end" merge block, therefore stop here
+		if (!lastExpr) {
+			break;
+		}
 	}
 
 	// Build the return inst
@@ -225,7 +235,7 @@ Value* ast_codegen::operator()(const parser::operator_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
-	//cerr << "Generating code for return:" << endl;
+	cerr << "Generating code for return:" << endl;
 	
 	// We can't generate a CreateRet in-place here since it might be
 	// within an if-else, LLVM doesn't allow terminators in the branches
@@ -265,7 +275,7 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
-	//cerr << "Generating code for call_expr:" << endl;
+	cerr << "Generating code for call_expr:" << endl;
 
 	const string& callFuncName = expr.funcName;
 	Function *calleeF = m_module->getFunction(callFuncName);
@@ -295,7 +305,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::if_expr& expr) {
-	//cerr << "Generating code for ifExpr:" << endl;
+	cerr << "Generating code for ifExpr:" << endl;
 
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 	assert(TheFunction);
@@ -315,6 +325,9 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 	Value* ThenV = nullptr;
 	Value* ElseV = nullptr;
 
+	bool thenBranched = false;
+	bool elseBranched = false;
+
 	// Build the 'then' branch code
 	{
 		m_builder.SetInsertPoint(ThenBB);
@@ -328,11 +341,11 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 			assert(ThenV);
 		}
 
-		// Small hack: Update our return flag if the 'then' branch created one
-		//m_returnGenerated |= symbolVisitor.m_returnGenerated;
-
+		// Create a branch to the MergeBB if the last was a branch instruction
 		if (!isa<BranchInst>(ThenV)) {
 			m_builder.CreateBr(MergeBB);
+		} else {
+			thenBranched = true;
 		}
 
 		ThenBB = m_builder.GetInsertBlock();
@@ -352,22 +365,26 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 			assert(ElseV);
 		}
 
-		// Small hack: Update our return flag if the 'else' branch created one
-		//m_returnGenerated |= symbolVisitor.m_returnGenerated;
-
+		// Create a branch to the MergeBB if the last was a branch instruction
 		if (!ElseV || (ElseV && !isa<BranchInst>(ElseV))) {
 			m_builder.CreateBr(MergeBB);
+		} else {
+			elseBranched = true;
 		}
 
 		ElseBB = m_builder.GetInsertBlock();
 	}
 
-	// Finalize the condition, sets the insertion point so code after this is attached
-	// to the "if.end" block
-	TheFunction->getBasicBlockList().push_back(MergeBB);
-	m_builder.SetInsertPoint(MergeBB);
+	// Finalize the condition, sets the insertion point so code after this is
+	// attached to the "if.end" block, only if the then and else branches both didn't branch
+	if (thenBranched && elseBranched) {
+		return nullptr;
+	} else {
+		TheFunction->getBasicBlockList().push_back(MergeBB);
+		m_builder.SetInsertPoint(MergeBB);
 
-	return MergeBB;
+		return MergeBB;
+	}
 }
 
 Value* ast_codegen::operator()(const parser::binary_op& op) {
@@ -446,7 +463,7 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 	TheFunction->getBasicBlockList().push_back(AfterBB);
 	m_builder.SetInsertPoint(AfterBB);
 
-	return nullptr;
+	return AfterBB;
 }
 
 Value* ast_codegen::operator()(const parser::var_assign& assign) {

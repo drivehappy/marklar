@@ -1,11 +1,11 @@
 
 marklar isPalindrome(marklar a) {
-	marklar _COMMENT_This_assumes_a_6_digit_palindrome;
+	marklar _COMMENT_This_assumes_a_6_digit_palindrome = 0;
 
 	marklar r = a % 1000;
 	marklar d = (a - r) / 1000;
 
-	marklar _COMMENT_Flip_d_to_determine_if_it_matches;
+	marklar _COMMENT_Flip_d_to_determine_if_it_matches = 0;
 	
 	marklar dFlipped = ((d % 10) * 100);
 	dFlipped = dFlipped + (((d / 10) % 10) * 10);
@@ -13,9 +13,9 @@ marklar isPalindrome(marklar a) {
 
 	if (dFlipped == r) {
 		return 1;
+	} else {
+		return 0;
 	}
-
-	return 0;
 }
 
 marklar main() {
