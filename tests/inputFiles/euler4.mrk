@@ -20,14 +20,16 @@ marklar isPalindrome(marklar a) {
 
 marklar main() {
 	marklar a = 999;
-	marklar b = 999;
-	marklar palindrome_test = 0;
+	marklar largest = 0;
 
-	while (a > 0) {
-		while (b > 0) {
-			palindrome_test = a * b;
+	while (a > 99) {
+		marklar b = 999;
+		while (b > 99) {
+			marklar palindrome_test = a * b;
 			if (isPalindrome(palindrome_test) > 0) {
-				a = 0;
+				if (palindrome_test > largest) {
+					largest = palindrome_test;
+				}
 				b = 0;
 			}
 
@@ -36,6 +38,6 @@ marklar main() {
 		a = a - 1;
 	}
 
-	return (palindrome_test >> 0);
+	return (largest >> 0);
 }
 
