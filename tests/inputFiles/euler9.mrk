@@ -36,10 +36,13 @@ marklar main() {
 			marklar c = solveC(a, b);
 
 			if (c > b) {
-				marklar sum = a + b + c;
+				marklar _COMMENT_Verify_that_C_is_a_natural_number;
+				if ((c*c) == ((a*a)+(b*b))) {
+					marklar sum = a + b + c;
 
-				if (sum == 1000) {
-					return ((a*b*c) >> 0);
+					if (sum == 1000) {
+						return ((a*b*c) >> 0);
+					}
 				}
 			}
 
