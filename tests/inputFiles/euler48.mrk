@@ -1,0 +1,14 @@
+
+marklar main() {
+	marklar n = 1;
+	marklar sum = 0;
+
+	while (n <= 1000) {
+		sum = sum + (n * n);
+
+		n = n + 1;
+	}
+
+	return (sum >> 40);
+}
+

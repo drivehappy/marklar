@@ -1,0 +1,38 @@
+-- Doesn't work, I think this needs to implement carry operations across an array or at least 10 variables
+
+marklar sumDigits(marklar n) {
+	marklar sum = 0;
+	marklar BUGn = n;
+
+	while (BUGn > 0) {
+		sum = sum + (n % 10);
+		BUGn = BUGn / 10;
+	}
+
+	return sum;
+}
+
+marklar main() {
+	marklar i = 1;
+	marklar fact = 1;
+	marklar digitSum = 0;
+
+	while (i <= 100) {
+		fact = i * fact;
+
+		if (fact >= 1000) {
+			digitSum = digitSum + sumDigits(fact % 1000);
+
+			if (i < 100) {
+				fact = fact / 1000;
+			}
+		}
+
+		i = i + 1;
+	}
+
+	digitSum = digitSum + sumDigits(fact);
+
+	return (digitSum >> 0);
+}
+
