@@ -462,11 +462,26 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 	ast_codegen symbolVisitor(*this);
 
 	// Generate the loop body
+	bool branchGenerated = false;
 	for (const auto& itrBody : loop.loopBody) {
-		boost::apply_visitor(symbolVisitor, itrBody);
-	}
+		Value* const v = boost::apply_visitor(symbolVisitor, itrBody);
+		assert(v);
 
-	m_builder.CreateBr(loopCond);
+		if ((v && isa<BranchInst>(v))) {
+			branchGenerated = true;
+			break;
+		}
+	}
+/*
+	if (branchGenerated) {
+		return nullptr;
+	}
+*/
+
+	if (!branchGenerated) {
+		// No branches in our loop directly, go ahead and build the final block
+		m_builder.CreateBr(loopCond);
+	}
 
 	TheFunction->getBasicBlockList().push_back(AfterBB);
 	m_builder.SetInsertPoint(AfterBB);

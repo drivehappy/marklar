@@ -483,6 +483,27 @@ TEST(DriverTest, FuncCallInIfStmt) {
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, WhileWithReturnStmt) {
+	const auto testProgram =
+		"marklar main() {"
+		"	while (1 == 1) {"
+		"		return 1;"
+		"	}"
+		"   return 0;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
+
+
 
 
 
