@@ -147,6 +147,10 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		if (!lastExpr) {
 			break;
 		}
+
+		if ((lastExpr && isa<BranchInst>(lastExpr))) {
+			break;
+		}
 	}
 
 	// Build the return inst
@@ -472,11 +476,6 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 			break;
 		}
 	}
-/*
-	if (branchGenerated) {
-		return nullptr;
-	}
-*/
 
 	if (!branchGenerated) {
 		// No branches in our loop directly, go ahead and build the final block
