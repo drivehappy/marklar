@@ -1,0 +1,9 @@
+marklar unaryFunc(marklar n) {
+  return n + 1;
+}
+marklar binaryFunc(marklar a, marklar b) {
+  return unaryFunc((a * a) + (b * b));
+}
+marklar main() {
+  return binaryFunc(1, 5);
+}

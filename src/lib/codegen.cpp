@@ -123,6 +123,8 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 		argItr->setName(argName);
 		m_symbolTable[argName] = argItr;
+
+		++argItr;
 	}
 
 	// Create a new visitor, this allows function-level scoping so our symbol table

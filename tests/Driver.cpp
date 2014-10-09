@@ -522,3 +522,25 @@ TEST(DriverTest, FuncWithEarlyReturnStmt) {
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, MultipleChainedFunctionCall) {
+	const auto testProgram =
+		"marklar unaryFunc(marklar n) {"
+		"  return n + 1;"
+		"}"
+		"marklar binaryFunc(marklar a, marklar b) {"
+		"  return unaryFunc((a * a) + (b * b));"
+		"}"
+		"marklar main() {"
+		"  return binaryFunc(1, 5);"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(27, runExecutable(g_outputExe));
+}
+
