@@ -27,9 +27,6 @@ marklar solveC(marklar a, marklar b) {
 }
 
 marklar main() {
-	return solveC(1, 998);
-	return (sqrt((1 * 1) + (998 * 998)));
-
 	marklar a = 1;
 	marklar b = 1;
 	marklar c = 0;
@@ -42,7 +39,8 @@ marklar main() {
 
 			sum = a + b + c;
 			if (sum == 1000) {
-				return c;
+				return a;
+				return ((a*b*c) >> 16);
 			}
 
 			b = b + 1;

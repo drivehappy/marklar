@@ -345,6 +345,10 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 		for (const auto& itrThen : expr.thenBranch) {
 			ThenV = boost::apply_visitor(symbolVisitor, itrThen);
 			assert(ThenV);
+
+			if (isa<BranchInst>(ThenV)) {
+				break;
+			}
 		}
 
 		// Create a branch to the MergeBB if the last was a branch instruction
@@ -369,6 +373,10 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 		for (const auto& itrElse : expr.elseBranch) {
 			ElseV = boost::apply_visitor(symbolVisitor, itrElse);
 			assert(ElseV);
+
+			if (isa<BranchInst>(ElseV)) {
+				break;
+			}
 		}
 
 		// Create a branch to the MergeBB if the last was a branch instruction
