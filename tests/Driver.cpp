@@ -390,6 +390,27 @@ TEST(DriverTest, LogicalOR) {
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
+TEST(DriverTest, LogicalAND) {
+	const auto testProgram =
+		"marklar main() {"
+		"  marklar a = 0;"
+		"  marklar b = 4;"
+		"  if ((a == 0) && (b == 0)) {"
+		"    return 2;"
+		"  }"
+		"  return 1;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	EXPECT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(1, runExecutable(g_outputExe));
+}
+
 TEST(DriverTest, Division) {
 	const auto testProgram =
 		"marklar main() {"

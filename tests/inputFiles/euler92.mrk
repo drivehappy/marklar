@@ -1,13 +1,19 @@
 marklar computeNextChainElement(marklar n) {
-	marklar a = (n / 10);
-	marklar b = (n % 10);
+	marklar BUGn = n;
+	marklar sum = 0;
 
-	return ((a * a) + (b * b));
+	while (BUGn > 0) {
+		marklar d = (BUGn % 10);
+		sum = sum + (d * d);
+		BUGn = BUGn / 10;
+	}
+
+	return sum;
 }
 
 marklar main() {
 	marklar i = 2;
-	marklar count = 2;
+	marklar count = 0;
 	
 	while (i < 10000000) {
 		marklar c = i;
@@ -23,6 +29,6 @@ marklar main() {
 		i = i + 1;
 	}
 
-	return count;
+	return (count >> 32);
 }
 
