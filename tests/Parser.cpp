@@ -268,4 +268,15 @@ TEST(ParserTest, FuncCallInIfStmt) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, LogicalAnd) {
+	const auto testProgram =
+		"marklar main() {"
+		"  while ((0 != 1) && (0 != 1)) {"
+		"    return 1;"
+		"  }"
+		"  return 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
 

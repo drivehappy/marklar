@@ -425,6 +425,8 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		            (&IRBuilder<>::CreateAnd),    m_builder, _1, _2, "and") },
 		{ "||", bind(static_cast<logical_t>
 		            (&IRBuilder<>::CreateOr),     m_builder, _1, _2, "or")  },
+		{ "&&", bind(static_cast<logical_t>
+		            (&IRBuilder<>::CreateAnd),    m_builder, _1, _2, "and")  },
 		{ ">>", bind(static_cast<shiftRight_t>
 		            (&IRBuilder<>::CreateLShr),   m_builder, _1, _2, "shr", false) },
 		{ "<<", bind(static_cast<shiftLeft_t>

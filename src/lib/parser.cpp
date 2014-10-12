@@ -192,6 +192,7 @@ namespace parser {
 				| ascii::string("!=")
 				| ascii::string("==")
 				| ascii::string("||")
+				| ascii::string("&&")
 				| qi::char_("+<>%/*&")
 				| qi::char_("\\-")
 				;

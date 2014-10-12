@@ -1,0 +1,28 @@
+marklar computeNextChainElement(marklar n) {
+	marklar a = (n / 10);
+	marklar b = (n % 10);
+
+	return ((a * a) + (b * b));
+}
+
+marklar main() {
+	marklar i = 2;
+	marklar count = 2;
+	
+	while (i < 10000000) {
+		marklar c = i;
+
+		while (((c != 1) && (c != 89))) {
+			c = computeNextChainElement(c);
+		}
+
+		if (c == 89) {
+			count = count + 1;
+		}
+
+		i = i + 1;
+	}
+
+	return count;
+}
+

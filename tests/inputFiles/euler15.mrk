@@ -11,6 +11,6 @@ marklar computeLatticeRouteCount(marklar x, marklar y) {
 }
 
 marklar main() {
-	return (computeLatticeRouteCount(20, 20) >> 40);
+	return (computeLatticeRouteCount(20, 20) >> 0);
 }
 
