@@ -1,0 +1,16 @@
+marklar computeLatticeRouteCount(marklar x, marklar y) {
+	if ((x == 0) || (y == 0)) {
+		return 1;
+	}
+
+	if (x == y) {
+		return (computeLatticeRouteCount((x - 1), y) * 2);
+	}
+
+	return (computeLatticeRouteCount((x - 1), y) + computeLatticeRouteCount(x, (y - 1)));
+}
+
+marklar main() {
+	return (computeLatticeRouteCount(20, 20) >> 40);
+}
+
