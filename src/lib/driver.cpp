@@ -71,7 +71,7 @@ namespace marklar {
 
 			// Optimize the generated bitcode with LLVM 'opt', produces an optimized bitcode file
 			{
-				cout << "Optimizing..." << endl;
+				//cout << "Optimizing..." << endl;
 
 				const string optCmd = "opt-3.5 -filetype=obj -o " + tmpOptBCName + " -O3 -loop-unroll -loop-vectorize -slp-vectorizer output.bc";
 
@@ -84,7 +84,7 @@ namespace marklar {
 
 			// Transform the bitcode into an object file with LLVM 'llc'
 			{
-				cout << "Linking..." << endl;
+				//cout << "Linking..." << endl;
 
 				const string llcCmd = "llc-3.5 -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
 
@@ -98,7 +98,7 @@ namespace marklar {
 			// Leverage gcc here to link the object file into the final executable
 			// this is mainly to bypass the more complicated options that the system 'ld' needs
 			{
-				cout << "Building executable..." << endl;
+				//cout << "Building executable..." << endl;
 
 				const string outputExeName = (exeName.empty() ? "a.out" : exeName);
 				const string gccCmd = "gcc -o " + outputExeName + " " + tmpObjName;

@@ -244,7 +244,6 @@ TEST(CodegenTest, IfElseStmt) {
 	raw_string_ostream errorOut(errorInfo);
 
 	module->print(errorOut, nullptr);
-	cerr << "Debug:" << errorInfo << endl;
 	if (verifyModule(*module, &errorOut)) {
 		cerr << "Error: " << errorInfo << endl;
 	}

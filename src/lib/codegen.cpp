@@ -82,7 +82,7 @@ Value* ast_codegen::operator()(const parser::base_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::func_expr& func) {
-	cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
+	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
 
@@ -241,7 +241,7 @@ Value* ast_codegen::operator()(const parser::operator_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
-	cerr << "Generating code for return:" << endl;
+	//cerr << "Generating code for return:" << endl;
 	
 	// We can't generate a CreateRet in-place here since it might be
 	// within an if-else, LLVM doesn't allow terminators in the branches
@@ -281,7 +281,7 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
-	cerr << "Generating code for call_expr:" << endl;
+	//cerr << "Generating code for call_expr:" << endl;
 
 	const string& callFuncName = expr.funcName;
 	Function *calleeF = m_module->getFunction(callFuncName);
@@ -298,7 +298,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 
 	// Build the arguments
 	std::vector<Value*> ArgsV;
-	cerr << "  Building call arguments: " << expr.values.size() << endl;
+	//cerr << "  Building call arguments: " << expr.values.size() << endl;
 	for (auto& exprArg : expr.values) {
 		Value* const v = boost::apply_visitor(*this, exprArg);
 		ArgsV.push_back(v);
@@ -311,7 +311,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::if_expr& expr) {
-	cerr << "Generating code for ifExpr:" << endl;
+	//cerr << "Generating code for ifExpr:" << endl;
 
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 	assert(TheFunction);
