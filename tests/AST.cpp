@@ -550,4 +550,3 @@ TEST(ASTTest, FuncCallInIfStmt) {
 	EXPECT_NE(nullptr, callExpr);
 }
 
-

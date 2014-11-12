@@ -7,6 +7,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/FileSystem.h>
 
 #include "parser.h"
 #include "codegen.h"
@@ -58,7 +59,7 @@ namespace marklar {
 			}
 
 			// Dump the LLVM IR to a file
-			llvm::raw_fd_ostream outStream(outputBitCodeName.c_str(), errorInfo, llvm::sys::fs::F_Binary);
+			llvm::raw_fd_ostream outStream(outputBitCodeName.c_str(), errorInfo, llvm::sys::fs::F_None);
 			llvm::WriteBitcodeToFile(module.get(), outStream);
 
 			return true;
