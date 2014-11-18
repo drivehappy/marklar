@@ -96,8 +96,26 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace parser {
 
+	// Skip parser used from: http://www.boost.org/doc/libs/1_56_0/libs/spirit/example/qi/compiler_tutorial/mini_c/skipper.hpp
 	template <typename Iterator>
-	struct marklar_grammar : qi::grammar<Iterator, base_expr_node(), qi::space_type>
+    struct skipper : qi::grammar<Iterator>
+    {
+        skipper() : skipper::base_type(start)
+        {
+            qi::char_type char_;
+            ascii::space_type space;
+
+            start =
+                    space                               // tab/space/cr/lf
+                |   "/*" >> *(char_ - "*/") >> "*/"     // C-style comments
+                ;
+        }
+
+        qi::rule<Iterator> start;
+    };
+
+	template <typename Iterator>
+	struct marklar_grammar : qi::grammar<Iterator, base_expr_node(), skipper<Iterator>>
 	{
 		marklar_grammar() : marklar_grammar::base_type(start)
 		{
@@ -214,26 +232,26 @@ namespace parser {
 			*/
 		}
 
-		qi::rule<Iterator, base_expr_node(), qi::space_type> start;
-		qi::rule<Iterator, base_expr(), qi::space_type> rootNode;
+		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> start;
+		qi::rule<Iterator, base_expr(), skipper<Iterator>> rootNode;
 
-		qi::rule<Iterator, func_expr(), qi::space_type> funcExpr;
-		qi::rule<Iterator, decl_expr(), qi::space_type> varDecl;
-		qi::rule<Iterator, string(), qi::space_type> varDef;
-		qi::rule<Iterator, binary_op(), qi::space_type> op_expr;
-		qi::rule<Iterator, base_expr_node(), qi::space_type> baseExpr;
-		qi::rule<Iterator, base_expr_node(), qi::space_type> callBaseExpr;
-		qi::rule<Iterator, return_expr(), qi::space_type> returnExpr;
-		qi::rule<Iterator, call_expr(), qi::space_type> callExpr;
-		qi::rule<Iterator, if_expr(), qi::space_type> ifExpr;
-		qi::rule<Iterator, while_loop(), qi::space_type> whileLoop;
-		qi::rule<Iterator, var_assign(), qi::space_type> varAssign;
+		qi::rule<Iterator, func_expr(), skipper<Iterator>> funcExpr;
+		qi::rule<Iterator, decl_expr(), skipper<Iterator>> varDecl;
+		qi::rule<Iterator, string(), skipper<Iterator>> varDef;
+		qi::rule<Iterator, binary_op(), skipper<Iterator>> op_expr;
+		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> baseExpr;
+		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> callBaseExpr;
+		qi::rule<Iterator, return_expr(), skipper<Iterator>> returnExpr;
+		qi::rule<Iterator, call_expr(), skipper<Iterator>> callExpr;
+		qi::rule<Iterator, if_expr(), skipper<Iterator>> ifExpr;
+		qi::rule<Iterator, while_loop(), skipper<Iterator>> whileLoop;
+		qi::rule<Iterator, var_assign(), skipper<Iterator>> varAssign;
 
-		qi::rule<Iterator, base_expr_node(), qi::space_type> factor;
-		qi::rule<Iterator, std::string(), qi::space_type> varName;
-		qi::rule<Iterator, std::string(), qi::space_type> intLiteral;
-		qi::rule<Iterator, std::string(), qi::space_type> value;
-		qi::rule<Iterator, std::string(), qi::space_type> op;
+		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> factor;
+		qi::rule<Iterator, std::string(), skipper<Iterator>> varName;
+		qi::rule<Iterator, std::string(), skipper<Iterator>> intLiteral;
+		qi::rule<Iterator, std::string(), skipper<Iterator>> value;
+		qi::rule<Iterator, std::string(), skipper<Iterator>> op;
 	};
 
 }
@@ -242,7 +260,8 @@ namespace marklar {
 
 	bool parse(const std::string& str, parser::base_expr_node& root) {
 		parser::marklar_grammar<std::string::const_iterator> p;
-		const bool r = qi::phrase_parse(str.begin(), str.end(), p, qi::space, root);
+		parser::skipper<std::string::const_iterator> s;
+		const bool r = qi::phrase_parse(str.begin(), str.end(), p, s, root);
 
 		return r;
 	}

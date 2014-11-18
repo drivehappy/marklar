@@ -13,6 +13,24 @@ TEST(ParserTest, BasicFunction) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, BasicComment) {
+	const auto testProgram =
+		"/* This is a comment */"
+		"marklar main() {"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, InvalidComment) {
+	const auto testProgram =
+		"/* This is a comment without the required * /"
+		"marklar main() {"
+		"}";
+
+	EXPECT_FALSE(parse(testProgram));
+}
+
 TEST(ParserTest, FunctionSingleDecl) {
 	const auto testProgram =
 		"marklar main() {"

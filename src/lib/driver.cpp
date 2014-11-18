@@ -25,7 +25,7 @@ namespace marklar {
 
 		bool generateOutput(const string& fileContents, const string& outputBitCodeName) {
 			// Parse the source file
-			cout << "Parsing..." << endl;
+			//cout << "Parsing..." << endl;
 			base_expr_node rootAst;
 			if (!parse(fileContents, rootAst)) {
 				cerr << "Failed to parse source file!" << endl;
@@ -33,7 +33,7 @@ namespace marklar {
 			}
 
 			// Generate the code
-			cout << "Generating code..." << endl;
+			//cout << "Generating code..." << endl;
 			LLVMContext &context = getGlobalContext();
 			unique_ptr<Module> module(new Module("", context));
 			IRBuilder<> builder(getGlobalContext());
