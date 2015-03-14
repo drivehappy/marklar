@@ -9,6 +9,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/Support/Casting.h>
 
 // Debugging
 #include <iostream>
@@ -97,7 +98,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		// Add it to the symbol table so we can refer to it later
 		m_symbolTable[func.functionName] = F;
 	} else {
-		F = dynamic_cast<Function*>(itr->second);
+		F = dyn_cast<Function>(itr->second);
 	}
 
 	BasicBlock *BB = BasicBlock::Create(getGlobalContext(), func.functionName.c_str(), F);
@@ -269,7 +270,7 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	assert(n);
 
 	Value* const ReturnBB = m_symbolTable["__retval__BB"];
-	Value* const r = m_builder.CreateBr(dynamic_cast<BasicBlock*>(ReturnBB));
+	Value* const r = m_builder.CreateBr(dyn_cast<BasicBlock>(ReturnBB));
 	assert(r);
 
 	// This should be a pointer type, the function would have created this

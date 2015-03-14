@@ -59,7 +59,8 @@ namespace marklar {
 			}
 
 			// Dump the LLVM IR to a file
-			llvm::raw_fd_ostream outStream(outputBitCodeName.c_str(), errorInfo, llvm::sys::fs::F_None);
+			std::error_code ec;
+			llvm::raw_fd_ostream outStream(outputBitCodeName.c_str(), ec, llvm::sys::fs::F_None);
 			llvm::WriteBitcodeToFile(module.get(), outStream);
 
 			return true;

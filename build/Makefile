@@ -1,8 +1,16 @@
 CXX				:= g++
 #CXX				:= clang
+
+#LLVM_INCLUDE	:= /usr/include/llvm-3.5/
+LLVM_DIR		:= /home/mharmer/dev/llvm-3.6/
+LLVM_INCLUDE	:= $(LLVM_DIR)/include/
+LLVM_LIB		:= $(LLVM_DIR)/lib
+LLVM_BIN		:= $(LLVM_DIR)/bin
+
 #CC_FLAGS 		:= -Wall -Werror -O0 -g -std=c++11 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -I../src/ -I../src/lib/ -I/usr/include/llvm-3.5/ -I/usr/include/llvm-c-3.5/ -L/usr/lib/x86_64-linux-gnu -L/usr/lib/llvm-3.5/lib 
-CC_FLAGS 		:= -Wall -Werror -O2 -std=c++11 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -I../src/ -I../src/lib/ -I/usr/include/llvm-3.5/ -I/usr/include/llvm-c-3.5/ -L/usr/lib/x86_64-linux-gnu -L/usr/lib/llvm-3.5/lib 
-LD_FLAGS 		:=  `llvm-config-3.5 --libs all` `llvm-config-3.5 --ldflags --system-libs` -lboost_program_options -lboost_system -lboost_filesystem
+CC_FLAGS 		:= -Wall -Werror -O2 -std=c++11 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -I../src/ -I../src/lib/ -I$(LLVM_INCLUDE) -L/usr/lib/x86_64-linux-gnu -L$(LLVM_LIB)
+
+LD_FLAGS 		:=  `$(LLVM_BIN)/llvm-config --libs all` `$(LLVM_BIN)/llvm-config --ldflags --system-libs` -lboost_program_options -lboost_system -lboost_filesystem
 LD_FLAGS_TESTS	:= $(LD_FLAGS) -lgtest -lpthread
 CPP_FILES		:= $(wildcard ../src/*.cpp)
 CPP_FILES_LIB	:= $(wildcard ../src/lib/*.cpp)
@@ -33,7 +41,7 @@ tests: $(OBJ_FILES_TESTS) $(OBJ_FILES_LIB)
  
 output: output.o wrapper.o
 	gcc output.o -o output
-	g++ -std=c++0x wrapper.cpp -o wrapper
+	g++ -std=c++11 wrapper.cpp -o wrapper
 
 output.o: output.asm 
 	as --32 -o output.o output.asm 
