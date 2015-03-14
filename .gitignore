@@ -4,3 +4,6 @@
 
 build/main
 build/tests
+
+build/marklarc
+build/out*
