@@ -74,7 +74,7 @@ namespace marklar {
 			{
 				//cout << "Optimizing..." << endl;
 
-				const string optCmd = "opt-3.5 -filetype=obj -o " + tmpOptBCName + " -O3 -loop-unroll -loop-vectorize -slp-vectorizer output.bc";
+				const string optCmd = "opt -filetype=obj -o " + tmpOptBCName + " -O3 -loop-unroll -loop-vectorize -slp-vectorizer output.bc";
 
 				const int retval = system(optCmd.c_str());
 				if (retval != 0) {
@@ -87,7 +87,7 @@ namespace marklar {
 			{
 				//cout << "Linking..." << endl;
 
-				const string llcCmd = "llc-3.5 -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
+				const string llcCmd = "llc -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
 
 				const int retval = system(llcCmd.c_str());
 				if (retval != 0) {
