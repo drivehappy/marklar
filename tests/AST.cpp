@@ -21,7 +21,7 @@ TEST(ASTTest, BasicFunction) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_TRUE(expr != nullptr);
+	ASSERT_TRUE(expr != nullptr);
 	
 	// We expect to have our func_expr in this root node
 	EXPECT_EQ(1u, expr->children.size());
@@ -42,9 +42,9 @@ TEST(ASTTest, FunctionSingleDecl) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_TRUE(expr != nullptr);
+	ASSERT_TRUE(expr != nullptr);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF != nullptr);
+	ASSERT_TRUE(exprF != nullptr);
 
 	// Check declarations
 	EXPECT_EQ(1u, exprF->declarations.size());
@@ -73,10 +73,10 @@ TEST(ASTTest, FunctionMultiDecl) {
 	EXPECT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_NE(nullptr, expr);
+	ASSERT_NE(nullptr, expr);
 
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_NE(nullptr, exprF);
+	ASSERT_NE(nullptr, exprF);
 
 	EXPECT_EQ(3u, exprF->declarations.size());
 

@@ -38,6 +38,7 @@ namespace parser {
 	> base_expr_node;
 	*/
 
+	/*
 	struct base_expr_node : x3::variant<
 			x3::forward_ast<base_expr>,
 			x3::forward_ast<func_expr>,
@@ -55,6 +56,21 @@ namespace parser {
 		using base_type::base_type;
 		using base_type::operator=;
 	};
+	*/
+
+	typedef boost::variant<
+		boost::recursive_wrapper<base_expr>,
+		boost::recursive_wrapper<func_expr>,
+		boost::recursive_wrapper<decl_expr>,
+		boost::recursive_wrapper<operator_expr>,
+		boost::recursive_wrapper<call_expr>,
+		boost::recursive_wrapper<return_expr>,
+		boost::recursive_wrapper<if_expr>,
+		boost::recursive_wrapper<binary_op>,
+		boost::recursive_wrapper<while_loop>,
+		boost::recursive_wrapper<var_assign>,
+		std::string
+	> base_expr_node;
 
 	struct operation {
 		std::string op;
