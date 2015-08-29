@@ -2,12 +2,17 @@
 
 #define BOOST_SPIRIT_DEBUG 
 
+#include <boost/spirit/home/x3.hpp>
+
+/*
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+*/
+
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/variant/recursive_variant.hpp>
@@ -19,10 +24,10 @@
 
 using namespace std;
 
-namespace qi = boost::spirit::qi;
-namespace ascii = boost::spirit::ascii;
-namespace phoenix = boost::phoenix;
-namespace fusion = boost::fusion;
+//namespace qi = boost::spirit::qi;
+//namespace x3 = boost::spirit::x3;
+//namespace phoenix = boost::phoenix;
+namespace x3 = boost::spirit::x3;
 
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -50,7 +55,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::func_expr,
-
 	(std::string, functionName)
 	(std::vector<std::string>, args)
 	(std::vector<parser::base_expr_node>, declarations)
@@ -96,172 +100,172 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace parser {
 
-	// Skip parser used from: http://www.boost.org/doc/libs/1_56_0/libs/spirit/example/qi/compiler_tutorial/mini_c/skipper.hpp
-	template <typename Iterator>
-    struct skipper : qi::grammar<Iterator>
-    {
-        skipper() : skipper::base_type(start)
-        {
-            qi::char_type char_;
-            ascii::space_type space;
+	namespace marklar {
+		// Rules decls
+		const x3::rule<class start, base_expr_node> start = "start";
+		const x3::rule<class rootNode, base_expr>   rootNode = "rootNode";
+		const x3::rule<class funcExpr, func_expr>   funcExpr = "funcExpr";
+		const x3::rule<class baseExpr, base_expr_node> baseExpr = "baseExpr";
+		const x3::rule<class callBaseExpr, base_expr_node> callBaseExpr = "callBaseExpr";
+		const x3::rule<class returnExpr, return_expr>  returnExpr = "returnExpr";
+		const x3::rule<class op_expr, binary_op>     op_expr = "op_expr";
+		const x3::rule<class op, std::string>      op = "op";
+		const x3::rule<class callExpr, call_expr>   callExpr = "callExpr";
+		const x3::rule<class ifExpr, if_expr>       ifExpr = "ifExpr";
+		const x3::rule<class whileLoop, while_loop> whileLoop = "whileLoop";
 
-            start =
-                    space                               // tab/space/cr/lf
-                |   "/*" >> *(char_ - "*/") >> "*/"     // C-style comments
-                ;
-        }
+		const x3::rule<class varName, std::string>  varName = "varName";
+		const x3::rule<class varDef, std::string>   varDef = "varDef";
+		const x3::rule<class varDecl, decl_expr>    varDecl = "varDecl";
+		const x3::rule<class varAssign, var_assign> varAssign = "varAssign";
+		const x3::rule<class value, std::string>      value = "value";
+		const x3::rule<class factor, base_expr_node>  factor = "factor";
+		const x3::rule<class intLiteral, std::string> intLiteral = "intLiteral";
+		
+		// Rules defs
+		const auto start_def = rootNode;
 
-        qi::rule<Iterator> start;
-    };
+		const auto rootNode_def = x3::eps >> +funcExpr >> x3::eoi;
 
-	template <typename Iterator>
-	struct marklar_grammar : qi::grammar<Iterator, base_expr_node(), skipper<Iterator>>
-	{
-		marklar_grammar() : marklar_grammar::base_type(start)
-		{
-			start %= rootNode;
+		const auto funcExpr_def =
+			   "marklar"
+			>> varName
+			>> '(' >> *(varDef % ',') >> ')'
+			>> '{'
+			>> *varDecl
+			>> *baseExpr
+			//>> -returnExpr
+			>> '}'
+			;
 
-			rootNode %= qi::eps >> +funcExpr >> qi::eoi;
+		const auto varDecl_def =
+			   varDef
+			>> -('=' >> (op_expr | value))
+			>> ';'
+			;
 
-			funcExpr %=
-				  "marklar"
-				>> varName
-				>> '(' >> *(varDef % ',') >> ')'
-				>> '{'
-				>> *varDecl
-				>> *baseExpr
-				>> -returnExpr
-				>> '}'
-				;
+		const auto varDef_def =
+			  "marklar"
+			>> varName
+			;
 
-			varDef %=
-				  "marklar"
-				>> varName
-				;
+		const auto op_expr_def =
+			   factor
+			>> *(op >> factor);
 
-			varDecl %=
-				   varDef
-				>> -('=' >> (op_expr | value))
-				>> ';'
-				;
+		const auto factor_def =
+			  x3::lit('(') >> op_expr >> ')'
+			| callExpr
+			| value;
 
-			op_expr %=
-				   factor
-				>> *(op >> factor);
+		const auto baseExpr_def = intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
 
-			factor %=
-				  qi::lit('(') >> op_expr >> ')'
-				| callExpr
-				| value;
+		// Small hack to only allow op_expr, but allow boost::fusion to use
+		// the base_node_expr type still (if we didn't, then baseExpr would
+		// be used, and it would parse odd things)
+		const auto callBaseExpr_def = op_expr;
 
-			baseExpr %= intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
+		const auto callExpr_def =
+			   varName
+			>> '(' >> *(callBaseExpr % ',') >> ')'
+			;
 
-			// Small hack to only allow op_expr, but allow boost::fusion to use
-			// the base_node_expr type still (if we didn't, then baseExpr would
-			// be used, and it would parse odd things)
-			callBaseExpr %= op_expr;
+		const auto returnExpr_def =
+			   "return"
+			>> (callExpr | op_expr | value)
+			>> ';'
+			;
 
-			callExpr %=
-				   varName
-				>> '(' >> *(callBaseExpr % ',') >> ')'
-				;
+		const auto ifExpr_def =
+			   x3::lit("if")
+			>> '('
+			>> op_expr
+			>> ')' >> '{'
+			>> *baseExpr
+			>> '}'
+			>> -(x3::lit("else") >> '{' >> *baseExpr >> '}')
+			;
 
-			returnExpr %=
-				   "return"
-				>> (callExpr | op_expr | value)
-				>> ';'
-				;
+		const auto whileLoop_def=
+			   x3::lit("while")
+			>> '('
+			>> op_expr
+			>> ')' >> '{'
+			>> *baseExpr
+			>> '}'
+			;
 
-			ifExpr %=
-				   qi::lit("if")
-				>> '('
-				>> op_expr
-				>> ')' >> '{'
-				>> *baseExpr
-				>> '}'
-				>> -(qi::lit("else") >> '{' >> *baseExpr >> '}')
-				;
+		const auto varAssign_def =
+			   varName
+			>> ('=' >> (op_expr | value))
+			>> ';'
+			;
 
-			whileLoop %=
-				   qi::lit("while")
-				>> '('
-				>> op_expr
-				>> ')' >> '{'
-				>> *baseExpr
-				>> '}'
-				;
+		const auto varName_def = x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9");
+		const auto intLiteral_def = +x3::char_("0-9");
+		const auto value_def = (varName | intLiteral);
 
-			varAssign %=
-				   varName
-				>> ('=' >> (op_expr | value))
-				>> ';'
-				;
+		// '>>' before the next '>' or else it will be matched as greater-than
+		const auto op_def =
+			  x3::string(">>")
+			| x3::string("<<")
+			| x3::string(">=")
+			| x3::string("<=")
+			| x3::string("!=")
+			| x3::string("==")
+			| x3::string("||")
+			| x3::string("&&")
+			| -x3::char_("+<>%/*&")
+			| -x3::ascii::char_("\\-")
+			;
 
-			varName %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
-			intLiteral %= +qi::char_("0-9");
-			value %= (varName | intLiteral);
 
-			// '>>' before the next '>' or else it will be matched as greater-than
-			op %=
-				  ascii::string(">>")
-				| ascii::string("<<")
-				| ascii::string(">=")
-				| ascii::string("<=")
-				| ascii::string("!=")
-				| ascii::string("==")
-				| ascii::string("||")
-				| ascii::string("&&")
-				| qi::char_("+<>%/*&")
-				| qi::char_("\\-")
-				;
+		BOOST_SPIRIT_DEFINE(
+			start,
+			rootNode,
+			funcExpr,
+			baseExpr,
+			callBaseExpr,
+			returnExpr,
+			op_expr,
+			op,
+			callExpr,
+			ifExpr,
+			whileLoop,
+			varName,
+			varDef,
+			varDecl,
+			varAssign,
+			value,
+			factor,
+			intLiteral
+		);
 
-			// Debugging
-			/*
-			BOOST_SPIRIT_DEBUG_NODE(funcExpr);
-			BOOST_SPIRIT_DEBUG_NODE(varDecl);
-			BOOST_SPIRIT_DEBUG_NODE(baseExpr);
-			BOOST_SPIRIT_DEBUG_NODE(ifExpr);
-			BOOST_SPIRIT_DEBUG_NODE(op_expr);
-			BOOST_SPIRIT_DEBUG_NODE(returnExpr);
-			BOOST_SPIRIT_DEBUG_NODE(callExpr);
-			BOOST_SPIRIT_DEBUG_NODE(op);
-			BOOST_SPIRIT_DEBUG_NODE(value);
-			BOOST_SPIRIT_DEBUG_NODE(intLiteral);
-			BOOST_SPIRIT_DEBUG_NODE(factor);
-			BOOST_SPIRIT_DEBUG_NODE(whileLoop);
-			*/
-		}
-
-		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> start;
-		qi::rule<Iterator, base_expr(), skipper<Iterator>> rootNode;
-
-		qi::rule<Iterator, func_expr(), skipper<Iterator>> funcExpr;
-		qi::rule<Iterator, decl_expr(), skipper<Iterator>> varDecl;
-		qi::rule<Iterator, string(), skipper<Iterator>> varDef;
-		qi::rule<Iterator, binary_op(), skipper<Iterator>> op_expr;
-		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> baseExpr;
-		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> callBaseExpr;
-		qi::rule<Iterator, return_expr(), skipper<Iterator>> returnExpr;
-		qi::rule<Iterator, call_expr(), skipper<Iterator>> callExpr;
-		qi::rule<Iterator, if_expr(), skipper<Iterator>> ifExpr;
-		qi::rule<Iterator, while_loop(), skipper<Iterator>> whileLoop;
-		qi::rule<Iterator, var_assign(), skipper<Iterator>> varAssign;
-
-		qi::rule<Iterator, base_expr_node(), skipper<Iterator>> factor;
-		qi::rule<Iterator, std::string(), skipper<Iterator>> varName;
-		qi::rule<Iterator, std::string(), skipper<Iterator>> intLiteral;
-		qi::rule<Iterator, std::string(), skipper<Iterator>> value;
-		qi::rule<Iterator, std::string(), skipper<Iterator>> op;
-	};
-
+		// Debugging
+		/*
+		BOOST_SPIRIT_DEBUG_NODE(funcExpr);
+		BOOST_SPIRIT_DEBUG_NODE(varDecl);
+		BOOST_SPIRIT_DEBUG_NODE(baseExpr);
+		BOOST_SPIRIT_DEBUG_NODE(ifExpr);
+		BOOST_SPIRIT_DEBUG_NODE(op_expr);
+		BOOST_SPIRIT_DEBUG_NODE(returnExpr);
+		BOOST_SPIRIT_DEBUG_NODE(callExpr);
+		BOOST_SPIRIT_DEBUG_NODE(op);
+		BOOST_SPIRIT_DEBUG_NODE(value);
+		BOOST_SPIRIT_DEBUG_NODE(intLiteral);
+		BOOST_SPIRIT_DEBUG_NODE(factor);
+		BOOST_SPIRIT_DEBUG_NODE(whileLoop);
+		*/
+	}
 }
 
 namespace marklar {
 
 	bool parse(const std::string& str, parser::base_expr_node& root) {
-		parser::marklar_grammar<std::string::const_iterator> p;
-		parser::skipper<std::string::const_iterator> s;
-		const bool r = qi::phrase_parse(str.begin(), str.end(), p, s, root);
+		//parser::marklar_grammar<std::string::const_iterator> p;
+		//parser::skipper<std::string::const_iterator> s;
+		//const bool r = x3::phrase_parse(str.begin(), str.end(), p, s, root);
+		const bool r = x3::phrase_parse(str.begin(), str.end(), parser::marklar::start, x3::space, root);
 
 		return r;
 	}
