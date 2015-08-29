@@ -1,0 +1,5 @@
+/* GPU Function Test */
+marklar marklarg_func() {
+	return 0;
+}
+
