@@ -215,8 +215,8 @@ namespace parser {
 			| x3::string("==")
 			| x3::string("||")
 			| x3::string("&&")
-			| -x3::char_("+<>%/*&")
-			| -x3::ascii::char_("\\-")
+			| -x3::char_("+<>%/*&-")
+			//| -x3::char_("\\-")
 			;
 
 

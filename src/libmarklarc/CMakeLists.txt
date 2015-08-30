@@ -1,9 +1,10 @@
+include_directories ("~/dev/spirit/include")
 include_directories ("~/dev/llvm/include")
 include_directories ("~/dev/llvm-build/include")
 
 link_directories ("~/dev/llvm-build/lib")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 file(GLOB llvm_LIBS
 	"/home/mharmer/dev/llvm-build/lib/*.a"
