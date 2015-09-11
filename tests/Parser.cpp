@@ -22,6 +22,15 @@ TEST(ParserTest, BasicComment) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, NestedComment_NotSupported) {
+	const auto testProgram =
+		"/* This is a /* comment */ */"
+		"marklar main() {"
+		"}";
+
+	EXPECT_FALSE(parse(testProgram));
+}
+
 TEST(ParserTest, InvalidComment) {
 	const auto testProgram =
 		"/* This is a comment without the required * /"

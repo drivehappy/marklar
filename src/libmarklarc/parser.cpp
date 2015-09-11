@@ -87,14 +87,16 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace parser {
 
-	// Doesn't seem to work, see the ParserTest.BasicComment
+	// Skip parser for handling comments
 	namespace skipper {
 
-		const x3::rule<class startSkip, std::string> startSkip = "startSkip";
+		const x3::rule<class startSkip, std::string> 		startSkip = "startSkip";
+		
+		const auto comment = x3::confix("/*", "*/");
 
-		const auto startSkip_def =
+		const auto startSkip_def = 
 			  x3::space
-			| "/*" >> *(x3::char_ - "*/") >> "*/"
+			| comment[*(x3::char_ - "*/")]
 			;
 
 		BOOST_SPIRIT_DEFINE(startSkip);

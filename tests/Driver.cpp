@@ -41,7 +41,6 @@ namespace {
 		if (!driver::optimizeAndLink(g_outputBitCode, g_outputExe)) {
 			return false;
 		}
-
 		return true;
 	}
 
@@ -62,12 +61,14 @@ TEST(DriverTest, BasicFunction) {
 		"  return 3;"
 		"}";
 
+	/*
 	// Cleanup generated intermediate and executable files
 	BOOST_SCOPE_EXIT(void) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
+	*/
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
@@ -84,7 +85,7 @@ TEST(DriverTest, FunctionSingleDecl) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
@@ -102,7 +103,7 @@ TEST(DriverTest, FunctionMultiDecl) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(5, runExecutable(g_outputExe));
 }
@@ -120,7 +121,7 @@ TEST(DriverTest, FunctionMultiDeclSum) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(7, runExecutable(g_outputExe));
 }
@@ -138,7 +139,7 @@ TEST(DriverTest, FunctionMultiDeclSumComplex) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(13, runExecutable(g_outputExe));
 }
@@ -164,7 +165,7 @@ TEST(DriverTest, MultipleFunction) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
@@ -180,7 +181,7 @@ TEST(DriverTest, FunctionUseArgs) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 	EXPECT_EQ(2, runExecutable(g_outputExe + " arg1"));
@@ -201,7 +202,7 @@ TEST(DriverTest, FunctionCall) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 	EXPECT_EQ(3, runExecutable(g_outputExe + " arg1"));
@@ -222,7 +223,7 @@ TEST(DriverTest, FunctionIfStmtReturnSimple) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -243,7 +244,7 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -266,7 +267,7 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(0, runExecutable(g_outputExe));
 }
@@ -285,7 +286,7 @@ TEST(DriverTest, OperatorLessThan) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -304,7 +305,7 @@ TEST(DriverTest, OperatorGreaterThan) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
@@ -323,7 +324,7 @@ TEST(DriverTest, OperatorEqual) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -343,7 +344,7 @@ TEST(DriverTest, OperatorModulo) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -364,7 +365,7 @@ TEST(DriverTest, WhileStmt) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(6, runExecutable(g_outputExe));
 }
@@ -385,7 +386,7 @@ TEST(DriverTest, LogicalOR) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
@@ -406,7 +407,7 @@ TEST(DriverTest, LogicalAND) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -423,7 +424,7 @@ TEST(DriverTest, Division) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -440,7 +441,7 @@ TEST(DriverTest, Subtraction) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
@@ -457,7 +458,7 @@ TEST(DriverTest, Multiplication) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
@@ -477,7 +478,7 @@ TEST(DriverTest, MultiMethods) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
@@ -499,7 +500,7 @@ TEST(DriverTest, FuncCallInIfStmt) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
@@ -522,7 +523,7 @@ TEST(DriverTest, IfWith2ReturnStmt) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -541,7 +542,7 @@ TEST(DriverTest, WhileWithReturnStmt) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
@@ -561,7 +562,7 @@ TEST(DriverTest, FuncWithEarlyReturnStmt) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
@@ -583,7 +584,7 @@ TEST(DriverTest, MultipleChainedFunctionCall) {
 		cleanupFiles();
 	} BOOST_SCOPE_EXIT_END
 
-	EXPECT_TRUE(createExe(testProgram));
+	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(27, runExecutable(g_outputExe));
 }
