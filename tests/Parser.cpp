@@ -15,25 +15,25 @@ TEST(ParserTest, BasicFunction) {
 
 TEST(ParserTest, BasicComment) {
 	const auto testProgram =
-		"/* This is a comment */"
+		"// This is a comment\n"
 		"marklar main() {"
 		"}";
 
 	EXPECT_TRUE(parse(testProgram));
 }
 
-TEST(ParserTest, NestedComment_NotSupported) {
+TEST(ParserTest, ComplexComment) {
 	const auto testProgram =
-		"/* This is a /* comment */ */"
+		"//// Blah //a//a//a This is a comment /\n"
 		"marklar main() {"
 		"}";
 
-	EXPECT_FALSE(parse(testProgram));
+	EXPECT_TRUE(parse(testProgram));
 }
 
 TEST(ParserTest, InvalidComment) {
 	const auto testProgram =
-		"/* This is a comment without the required * /"
+		"a // This is a comment\n"
 		"marklar main() {"
 		"}";
 

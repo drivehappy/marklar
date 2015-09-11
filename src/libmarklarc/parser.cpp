@@ -92,11 +92,11 @@ namespace parser {
 
 		const x3::rule<class startSkip, std::string> 		startSkip = "startSkip";
 		
-		const auto comment = x3::confix("/*", "*/");
+		const auto comment = x3::confix("//", x3::eol);
 
 		const auto startSkip_def = 
 			  x3::space
-			| comment[*(x3::char_ - "*/")]
+			| comment[*(x3::char_ - x3::eol)]
 			;
 
 		BOOST_SPIRIT_DEFINE(startSkip);
