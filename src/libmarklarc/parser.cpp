@@ -1,18 +1,8 @@
+//#define BOOST_SPIRIT_X3_DEBUG
+
 #include "parser.h"
 
-#define BOOST_SPIRIT_DEBUG 
-
 #include <boost/spirit/home/x3.hpp>
-
-/*
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-*/
-
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/variant/recursive_variant.hpp>
@@ -24,9 +14,6 @@
 
 using namespace std;
 
-//namespace qi = boost::spirit::qi;
-//namespace x3 = boost::spirit::x3;
-//namespace phoenix = boost::phoenix;
 namespace x3 = boost::spirit::x3;
 
 
@@ -100,27 +87,40 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 namespace parser {
 
+	// Doesn't seem to work, see the ParserTest.BasicComment
+	namespace skipper {
+
+		const x3::rule<class startSkip, std::string> startSkip = "startSkip";
+
+		const auto startSkip_def =
+			  x3::space
+			| "/*" >> *(x3::char_ - "*/") >> "*/"
+			;
+
+		BOOST_SPIRIT_DEFINE(startSkip);
+	}
+
 	namespace marklar {
 		// Rules decls
-		const x3::rule<class start, base_expr_node> start = "start";
-		const x3::rule<class rootNode, base_expr>   rootNode = "rootNode";
-		const x3::rule<class funcExpr, func_expr>   funcExpr = "funcExpr";
-		const x3::rule<class baseExpr, base_expr_node> baseExpr = "baseExpr";
-		const x3::rule<class callBaseExpr, base_expr_node> callBaseExpr = "callBaseExpr";
-		const x3::rule<class returnExpr, return_expr>  returnExpr = "returnExpr";
-		const x3::rule<class op_expr, binary_op>     op_expr = "op_expr";
-		const x3::rule<class op, std::string>      op = "op";
-		const x3::rule<class callExpr, call_expr>   callExpr = "callExpr";
-		const x3::rule<class ifExpr, if_expr>       ifExpr = "ifExpr";
-		const x3::rule<class whileLoop, while_loop> whileLoop = "whileLoop";
+		const x3::rule<class start, base_expr_node>			start = "start";
+		const x3::rule<class rootNode, base_expr>   		rootNode = "rootNode";
+		const x3::rule<class funcExpr, func_expr>   		funcExpr = "funcExpr";
+		const x3::rule<class baseExpr, base_expr_node> 		baseExpr = "baseExpr";
+		const x3::rule<class callBaseExpr, base_expr_node> 	callBaseExpr = "callBaseExpr";
+		const x3::rule<class returnExpr, return_expr>  		returnExpr = "returnExpr";
+		const x3::rule<class op_expr, binary_op>     		op_expr = "op_expr";
+		const x3::rule<class op, std::string>      			op = "op";
+		const x3::rule<class callExpr, call_expr>   		callExpr = "callExpr";
+		const x3::rule<class ifExpr, if_expr>       		ifExpr = "ifExpr";
+		const x3::rule<class whileLoop, while_loop> 		whileLoop = "whileLoop";
 
-		const x3::rule<class varName, std::string>  varName = "varName";
-		const x3::rule<class varDef, std::string>   varDef = "varDef";
-		const x3::rule<class varDecl, decl_expr>    varDecl = "varDecl";
-		const x3::rule<class varAssign, var_assign> varAssign = "varAssign";
-		const x3::rule<class value, std::string>      value = "value";
-		const x3::rule<class factor, base_expr_node>  factor = "factor";
-		const x3::rule<class intLiteral, std::string> intLiteral = "intLiteral";
+		const x3::rule<class varName, std::string>  		varName = "varName";
+		const x3::rule<class varDef, std::string>   		varDef = "varDef";
+		const x3::rule<class varDecl, decl_expr>    		varDecl = "varDecl";
+		const x3::rule<class varAssign, var_assign> 		varAssign = "varAssign";
+		const x3::rule<class value, std::string>      		value = "value";
+		const x3::rule<class factor, base_expr_node>  		factor = "factor";
+		const x3::rule<class intLiteral, std::string> 		intLiteral = "intLiteral";
 		
 		// Rules defs
 		const auto start_def = rootNode;
@@ -134,7 +134,6 @@ namespace parser {
 			>> '{'
 			>> *varDecl
 			>> *baseExpr
-			//>> -returnExpr
 			>> '}'
 			;
 
@@ -240,34 +239,13 @@ namespace parser {
 			factor,
 			intLiteral
 		);
-
-		// Debugging
-		/*
-		BOOST_SPIRIT_DEBUG_NODE(funcExpr);
-		BOOST_SPIRIT_DEBUG_NODE(varDecl);
-		BOOST_SPIRIT_DEBUG_NODE(baseExpr);
-		BOOST_SPIRIT_DEBUG_NODE(ifExpr);
-		BOOST_SPIRIT_DEBUG_NODE(op_expr);
-		BOOST_SPIRIT_DEBUG_NODE(returnExpr);
-		BOOST_SPIRIT_DEBUG_NODE(callExpr);
-		BOOST_SPIRIT_DEBUG_NODE(op);
-		BOOST_SPIRIT_DEBUG_NODE(value);
-		BOOST_SPIRIT_DEBUG_NODE(intLiteral);
-		BOOST_SPIRIT_DEBUG_NODE(factor);
-		BOOST_SPIRIT_DEBUG_NODE(whileLoop);
-		*/
 	}
 }
 
 namespace marklar {
 
 	bool parse(const std::string& str, parser::base_expr_node& root) {
-		//parser::marklar_grammar<std::string::const_iterator> p;
-		//parser::skipper<std::string::const_iterator> s;
-		//const bool r = x3::phrase_parse(str.begin(), str.end(), p, s, root);
-		const bool r = x3::phrase_parse(str.begin(), str.end(), parser::marklar::start, x3::space, root);
-
-		return r;
+		return x3::phrase_parse(str.begin(), str.end(), parser::marklar::start, parser::skipper::startSkip, root);
 	}
 
 	bool parse(const std::string& str) {
