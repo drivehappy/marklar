@@ -49,6 +49,24 @@ TEST(ParserTest, FunctionSingleDecl) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, FunctionSingleDecl_NameCheck1) {
+	const auto testProgram =
+		"marklar main() {"
+		"  marklar i09za_ = 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, FunctionSingleDecl_NameCheck2) {
+	const auto testProgram =
+		"marklar main() {"
+		"  marklar i' = 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
 TEST(ParserTest, FunctionMultiDecl) {
 	const auto testProgram =
 		"marklar main() {"

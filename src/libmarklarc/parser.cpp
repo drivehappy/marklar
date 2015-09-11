@@ -202,7 +202,7 @@ namespace parser {
 			>> ';'
 			;
 
-		const auto varName_def = x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9");
+		const auto varName_def = x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9'");
 		const auto intLiteral_def = +x3::char_("0-9");
 		const auto value_def = (varName | intLiteral);
 
