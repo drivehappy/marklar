@@ -450,8 +450,21 @@ TEST(CodegenTest, FuncWithEarlyReturnStmt) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, FuncWithPrintf) {
+	const auto testProgram =
+		"marklar main() {"
+		"   printf(\"test\");"
+		"   return 0;"
+		"}";
 
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
 
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
 
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
 
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
@@ -27,6 +29,50 @@ namespace {
 	bool is_number(const string& s) {
 		return !s.empty() && find_if(s.begin(),
 			s.end(), [](char c) { return !isdigit(c); }) == s.end();
+	}
+
+	bool isQuotedString(const string& s) {
+		const auto sz = s.size();
+
+		if (sz < 2) {
+			return false;
+		}
+
+		return (s[0] == '"' && s[sz-1] == '"');
+	}
+
+	string trimQuotes(const string& s) {
+		string newStr(s);
+
+		boost::trim_if(newStr, boost::is_any_of("\""));
+
+		return newStr;
+	}
+
+	// Helper function for printf
+	Function* printf_prototype(LLVMContext& ctx, Module* mod) {
+		//FunctionType *printf_type = TypeBuilder<int(char *, ...), false>::get(getGlobalContext());
+		vector<Type*> printf_arg_types = { Type::getInt8PtrTy(ctx) };
+
+		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
+
+		Function *func = cast<Function>(mod->getOrInsertFunction("printf", printf_type,
+				AttributeSet().addAttribute(mod->getContext(), 1U, Attribute::NoAlias)));
+
+		return func;
+	}
+
+	// Helper, taken from: http://stackoverflow.com/a/28175502
+	Constant* geti8StrVal(Module& M, char const* str, Twine const& name) {
+		LLVMContext& ctx = getGlobalContext();
+		Constant* strConstant = ConstantDataArray::getString(ctx, str);
+		GlobalVariable* GVStr =
+			new GlobalVariable(M, strConstant->getType(), true,
+						 GlobalValue::InternalLinkage, strConstant, name);
+		Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(ctx));
+		Constant* indices[] = {zero, zero};
+		Constant* strVal = ConstantExpr::getGetElementPtr(nullptr, GVStr, indices, true);
+		return strVal;
 	}
 }
 
@@ -55,14 +101,38 @@ Value* ast_codegen::operator()(const string& val) {
 		APInt vInt(64, stol(val));
 		retVal = ConstantInt::get(getGlobalContext(), vInt);
 	} else {
-		cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
-		cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
+		// TODO: Prototype hacky code to create a string for printf
+		if (isQuotedString(val)) {
+			// This is a string in quotes and is only seen once, therefore build a constant for it
+			const auto rawString = trimQuotes(val); 
+			//retVal = ConstantDataArray::getString(getGlobalContext(), rawString);
+			/*
+			auto* format_const = ConstantDataArray::getString(getGlobalContext(), rawString);
+			GlobalVariable* var = new GlobalVariable(
+				*m_module,
+				ArrayType::get(IntegerType::get(getGlobalContext(), 8), 4),
+				true,
+				GlobalValue::PrivateLinkage,
+				format_const,
+				".str");
 
-		for (const auto& kv : m_symbolTable) {
-			cerr  << "    Key: " << kv.first << ", Value: " << kv.second << endl;
+			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(getGlobalContext()));
+			//vector<Constant*> indices = { zero, zero };
+			Constant* varRef = ConstantExpr::getGetElementPtr(var, zero);
+			retVal = varRef;
+			*/
+
+			retVal = geti8StrVal(*m_module, rawString.c_str(), ".str");
+		} else {
+			cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
+			cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
+
+			for (const auto& kv : m_symbolTable) {
+				cerr  << "    Key: " << kv.first << ", Value: " << kv.second << endl;
+			}
+
+			cerr << endl;
 		}
-
-		cerr << endl;
 	}
 
 	return retVal;
@@ -95,10 +165,12 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
-		// TESTING
+		/*
+		// TESTING GPU
 		if (func.functionName == "marklarg_func") {
 			F->setCallingConv(CallingConv::PTX_Kernel);
 		}
+		*/
 
 		// Add it to the symbol table so we can refer to it later
 		m_symbolTable[func.functionName] = F;
@@ -292,8 +364,13 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 	const string& callFuncName = expr.funcName;
 	Function *calleeF = m_module->getFunction(callFuncName);
 	if (calleeF == nullptr) {
-		cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
-		return nullptr;
+		// TODO: This is a prototype/hack to get printf working, needs to be generalized
+		if (callFuncName == "printf") {
+			calleeF = printf_prototype(getGlobalContext(), m_module);
+		} else {
+			cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
+			return nullptr;
+		}
 	}
 
 	// Check that the number of arguments match with what we expect on the function

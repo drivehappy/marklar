@@ -1,0 +1,4 @@
+marklar main() {
+  printf("test\n");
+  return 0;
+}

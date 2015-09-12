@@ -123,6 +123,7 @@ namespace parser {
 		const x3::rule<class value, std::string>      		value = "value";
 		const x3::rule<class factor, base_expr_node>  		factor = "factor";
 		const x3::rule<class intLiteral, std::string> 		intLiteral = "intLiteral";
+		const x3::rule<class quotedString, std::string> 	quotedString = "quotedString";
 		
 		// Rules defs
 		const auto start_def = rootNode;
@@ -157,7 +158,13 @@ namespace parser {
 		const auto factor_def =
 			  x3::lit('(') >> op_expr >> ')'
 			| callExpr
-			| value;
+			| value
+			| quotedString
+			;
+
+		const auto quotedString_def =
+			  x3::lexeme[x3::char_("\"") >> *(x3::char_ - "\"") >> x3::char_("\"")]
+			;
 
 		const auto baseExpr_def = intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
 
@@ -217,7 +224,6 @@ namespace parser {
 			| x3::string("||")
 			| x3::string("&&")
 			| -x3::char_("+<>%/*&-")
-			//| -x3::char_("\\-")
 			;
 
 
@@ -239,7 +245,8 @@ namespace parser {
 			varAssign,
 			value,
 			factor,
-			intLiteral
+			intLiteral,
+			quotedString
 		);
 	}
 }

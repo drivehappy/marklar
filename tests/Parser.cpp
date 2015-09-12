@@ -325,3 +325,13 @@ TEST(ParserTest, LogicalAnd) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, String) {
+	const auto testProgram =
+		"marklar main() {"
+		"  printf(\"string test\");"
+		"  return 0;"
+		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
