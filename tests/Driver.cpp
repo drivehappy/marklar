@@ -3,6 +3,8 @@
 #include <sys/wait.h>
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -20,10 +22,12 @@ namespace {
 
 	const string g_outputBitCode = "output.bc";
 	const string g_outputExe = "a.out";
+	const string g_outputStdout = "testStdout.txt";
 
 	vector<string> g_cleanupFiles = {
 		g_outputExe,
 		g_outputBitCode,
+		g_outputStdout,
 		"output_opt.bc",
 		"output.o",
 	};
@@ -32,6 +36,17 @@ namespace {
 		for (auto& itr : g_cleanupFiles) {
 			boost::filesystem::remove(itr);
 		}
+	}
+
+	string loadFileContents(const string& filename) {
+		ifstream ifs(filename.c_str());
+		stringstream buffer;
+		buffer << ifs.rdbuf();
+		return buffer.str();
+	}
+
+	string stdoutContents() {
+		return loadFileContents(g_outputStdout);
 	}
 
 	bool createExe(const string& testProgram) {
@@ -45,7 +60,7 @@ namespace {
 	}
 
 	int runExecutable(const string& exe) {
-		const int r = system(("./" + exe).c_str());
+		const int r = system(("./" + exe + " > " + g_outputStdout).c_str());
 		if (r == -1) {
 			return -1;
 		}
@@ -587,5 +602,44 @@ TEST(DriverTest, MultipleChainedFunctionCall) {
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(27, runExecutable(g_outputExe));
+}
+
+TEST(DriverTest, FuncWithPrintf) {
+	const auto testProgram =
+		"marklar main() {"
+		"   printf(\"test\");"
+		"   return 0;"
+		"}";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	ASSERT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(0, runExecutable(g_outputExe));
+
+	EXPECT_EQ("test", stdoutContents());
+}
+
+TEST(DriverTest, PrintfEscapeChars) {
+	const auto testProgram = R"mrk(
+		marklar main() {
+		   printf("test\n");
+		   return 0;
+		}
+		)mrk";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	ASSERT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(0, runExecutable(g_outputExe));
+
+	EXPECT_EQ("test\n", stdoutContents());
 }
 

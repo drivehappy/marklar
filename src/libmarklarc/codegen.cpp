@@ -49,6 +49,10 @@ namespace {
 		return newStr;
 	}
 
+	string convertEscapedCharacters(const string& s) {
+		return boost::replace_all_copy(s, "\\n", "\n");
+	}
+
 	// Helper function for printf
 	Function* printf_prototype(LLVMContext& ctx, Module* mod) {
 		//FunctionType *printf_type = TypeBuilder<int(char *, ...), false>::get(getGlobalContext());
@@ -104,7 +108,7 @@ Value* ast_codegen::operator()(const string& val) {
 		// TODO: Prototype hacky code to create a string for printf
 		if (isQuotedString(val)) {
 			// This is a string in quotes and is only seen once, therefore build a constant for it
-			const auto rawString = trimQuotes(val); 
+			const auto rawString = convertEscapedCharacters(trimQuotes(val));
 			//retVal = ConstantDataArray::getString(getGlobalContext(), rawString);
 			/*
 			auto* format_const = ConstantDataArray::getString(getGlobalContext(), rawString);
