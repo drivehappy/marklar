@@ -1,2 +1,0 @@
-/usr/bin/ar cr liblibmarklarc.a  CMakeFiles/libmarklarc.dir/codegen.cpp.o CMakeFiles/libmarklarc.dir/parser.cpp.o CMakeFiles/libmarklarc.dir/driver.cpp.o
-/usr/bin/ranlib liblibmarklarc.a
