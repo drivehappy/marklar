@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost/spirit/home/x3.hpp>
-#include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/variant/recursive_variant.hpp>
 
 #include <string>
@@ -12,6 +10,7 @@ namespace parser {
 	struct base_expr;
 	struct func_expr;
 	struct decl_expr;
+	struct def_expr;
 	struct operator_expr;
 	struct call_expr;
 	struct return_expr;
@@ -19,49 +18,12 @@ namespace parser {
 	struct binary_op;
 	struct while_loop;
 	struct var_assign;
-	
-	namespace x3 = boost::spirit::x3;
-
-	/*
-	typedef boost::variant<
-		x3::forward_ast<base_expr>,
-		x3::forward_ast<func_expr>,
-		x3::forward_ast<decl_expr>,
-		x3::forward_ast<operator_expr>,
-		x3::forward_ast<call_expr>,
-		x3::forward_ast<return_expr>,
-		x3::forward_ast<if_expr>,
-		x3::forward_ast<binary_op>,
-		x3::forward_ast<while_loop>,
-		x3::forward_ast<var_assign>,
-		std::string
-	> base_expr_node;
-	*/
-
-	/*
-	struct base_expr_node : x3::variant<
-			x3::forward_ast<base_expr>,
-			x3::forward_ast<func_expr>,
-			x3::forward_ast<decl_expr>,
-			x3::forward_ast<operator_expr>,
-			x3::forward_ast<call_expr>,
-			x3::forward_ast<return_expr>,
-			x3::forward_ast<if_expr>,
-			x3::forward_ast<binary_op>,
-			x3::forward_ast<while_loop>,
-			x3::forward_ast<var_assign>,
-			std::string
-		>
-	{
-		using base_type::base_type;
-		using base_type::operator=;
-	};
-	*/
 
 	typedef boost::variant<
 		boost::recursive_wrapper<base_expr>,
 		boost::recursive_wrapper<func_expr>,
 		boost::recursive_wrapper<decl_expr>,
+		boost::recursive_wrapper<def_expr>,
 		boost::recursive_wrapper<operator_expr>,
 		boost::recursive_wrapper<call_expr>,
 		boost::recursive_wrapper<return_expr>,
@@ -91,15 +53,22 @@ namespace parser {
 	};
 	
 	struct func_expr {
+		std::string returnType;
 		std::string functionName;
-		std::vector<std::string> args;
+		std::vector<def_expr> args;
 		std::vector<base_expr_node> declarations;
 		std::vector<base_expr_node> expressions;
 	};
 
 	struct decl_expr {
+		std::string typeName;
 		std::string declName;
 		base_expr_node val;
+	};
+
+	struct def_expr {
+		std::string typeName;
+		std::string defName;
 	};
 
 	struct operator_expr {

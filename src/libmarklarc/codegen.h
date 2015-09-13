@@ -27,6 +27,7 @@ namespace marklar {
 		llvm::Value* operator()(const parser::base_expr& expr);
 		llvm::Value* operator()(const std::string& expr);
 		llvm::Value* operator()(const parser::func_expr& expr);
+		llvm::Value* operator()(const parser::def_expr& expr);
 		llvm::Value* operator()(const parser::decl_expr& expr);
 		llvm::Value* operator()(const parser::operator_expr& expr);
 		llvm::Value* operator()(const parser::return_expr& expr);

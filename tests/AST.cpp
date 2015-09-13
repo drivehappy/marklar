@@ -294,8 +294,10 @@ TEST(ASTTest, FunctionArgs) {
 	EXPECT_TRUE(exprF != nullptr);
 
 	EXPECT_EQ(2u, exprF->args.size());
-	EXPECT_EQ("a", exprF->args[0]);
-	EXPECT_EQ("b", exprF->args[1]);
+	EXPECT_EQ("a", exprF->args[0].defName);
+	EXPECT_EQ("i32", exprF->args[0].typeName);
+	EXPECT_EQ("b", exprF->args[1].defName);
+	EXPECT_EQ("i32", exprF->args[1].typeName);
 }
 
 TEST(ASTTest, FunctionCall) {

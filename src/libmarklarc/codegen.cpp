@@ -200,8 +200,8 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Add function arguments
 	Function::arg_iterator argItr = F->arg_begin();
-	for (auto& argStr : func.args) {
-		const string argName = string(F->getName()) + "_" + argStr;
+	for (auto& argDef : func.args) {
+		const string argName = string(F->getName()) + "_" + argDef.defName;
 
 		argItr->setName(argName);
 		m_symbolTable[argName] = argItr;
@@ -249,6 +249,10 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	// LLVM sanity check
 	verifyFunction(*F);
 
+	return nullptr;
+}
+
+Value* ast_codegen::operator()(const parser::def_expr& def) {
 	return nullptr;
 }
 

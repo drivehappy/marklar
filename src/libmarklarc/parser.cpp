@@ -36,14 +36,22 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::decl_expr,
+	(std::string, typeName)
 	(std::string, declName)
 	(parser::base_expr_node, val)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+	parser::def_expr,
+	(std::string, typeName)
+	(std::string, defName)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
 	parser::func_expr,
+	(std::string, returnType)
 	(std::string, functionName)
-	(std::vector<std::string>, args)
+	(std::vector<parser::def_expr>, args)
 	(std::vector<parser::base_expr_node>, declarations)
 	(std::vector<parser::base_expr_node>, expressions)
 )
@@ -117,13 +125,16 @@ namespace parser {
 		const x3::rule<class whileLoop, while_loop> 		whileLoop = "whileLoop";
 
 		const x3::rule<class varName, std::string>  		varName = "varName";
-		const x3::rule<class varDef, std::string>   		varDef = "varDef";
+		const x3::rule<class varDef, def_expr>				varDef = "varDef";
 		const x3::rule<class varDecl, decl_expr>    		varDecl = "varDecl";
 		const x3::rule<class varAssign, var_assign> 		varAssign = "varAssign";
 		const x3::rule<class value, std::string>      		value = "value";
 		const x3::rule<class factor, base_expr_node>  		factor = "factor";
 		const x3::rule<class intLiteral, std::string> 		intLiteral = "intLiteral";
 		const x3::rule<class quotedString, std::string> 	quotedString = "quotedString";
+
+		const x3::rule<class typeName, std::string>			typeName = "typeName";
+
 		
 		// Rules defs
 		const auto start_def = rootNode;
@@ -131,7 +142,7 @@ namespace parser {
 		const auto rootNode_def = x3::eps >> +funcExpr >> x3::eoi;
 
 		const auto funcExpr_def =
-			   "i32"
+			   typeName
 			>> varName
 			>> '(' >> *(varDef % ',') >> ')'
 			>> '{'
@@ -141,13 +152,14 @@ namespace parser {
 			;
 
 		const auto varDecl_def =
-			   varDef
+			   typeName
+			>> varName
 			>> -('=' >> (op_expr | value))
 			>> ';'
 			;
 
 		const auto varDef_def =
-			  "i32"
+			   typeName
 			>> varName
 			;
 
@@ -226,6 +238,9 @@ namespace parser {
 			| -x3::char_("+<>%/*&-")
 			;
 
+		const auto typeName_def =
+			  x3::string("i32")
+			;
 
 		BOOST_SPIRIT_DEFINE(
 			start,
@@ -246,7 +261,8 @@ namespace parser {
 			value,
 			factor,
 			intLiteral,
-			quotedString
+			quotedString,
+			typeName
 		);
 	}
 }
