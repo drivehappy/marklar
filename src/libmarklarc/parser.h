@@ -56,7 +56,6 @@ namespace parser {
 		std::string returnType;
 		std::string functionName;
 		std::vector<def_expr> args;
-		std::vector<base_expr_node> declarations;
 		std::vector<base_expr_node> expressions;
 	};
 

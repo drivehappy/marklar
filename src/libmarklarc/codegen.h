@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <tuple>
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/IRBuilder.h>
@@ -15,7 +16,8 @@ namespace marklar {
 
 	class ast_codegen : public boost::static_visitor<llvm::Value*> {
 	public:
-		using symbolType_t = std::map<std::string, llvm::Value*>;
+		using symbolValue_t = std::map<std::string, llvm::Value*>;
+		//using symbolType_t = std::map<std::string, llvm::Type*>;
 
 		ast_codegen(llvm::Module* m, llvm::IRBuilder<>& b)
 		: m_module(m), m_builder(b) {}
@@ -41,7 +43,8 @@ namespace marklar {
 		llvm::Module* m_module;
 		llvm::IRBuilder<>& m_builder;
 
-		symbolType_t m_symbolTable;
+		symbolValue_t m_symbolTable;
+		//symbolType_t m_symbolType;
 	};
 
 }

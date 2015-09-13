@@ -53,6 +53,13 @@ namespace {
 		return boost::replace_all_copy(s, "\\n", "\n");
 	}
 
+	// Helper to convert from a marklar type to a LLVM type,
+	// e.g. i32 to Type*
+	Type* convertMarklarTypeToLLVM(const string& mrkType) {
+		// TODO Flesh this out with more types
+		return IntegerType::getInt32Ty(getGlobalContext());
+	}
+
 	// Helper function for printf
 	Function* printf_prototype(LLVMContext& ctx, Module* mod) {
 		//FunctionType *printf_type = TypeBuilder<int(char *, ...), false>::get(getGlobalContext());
@@ -90,7 +97,7 @@ Value* ast_codegen::operator()(const string& val) {
 
 	Value *retVal = nullptr;
 
-	map<string, Value*>::iterator itr = m_symbolTable.find(varName);
+	auto itr = m_symbolTable.find(varName);
 	if (itr != m_symbolTable.end()) {
 		Value* const localVar = itr->second;
 
@@ -169,13 +176,6 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
-		/*
-		// TESTING GPU
-		if (func.functionName == "marklarg_func") {
-			F->setCallingConv(CallingConv::PTX_Kernel);
-		}
-		*/
-
 		// Add it to the symbol table so we can refer to it later
 		m_symbolTable[func.functionName] = F;
 	} else {
@@ -213,10 +213,12 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	// isn't re-used across other functions
 	ast_codegen symbolVisitor(*this);
 
+	/*
 	// Visit declarations inside the function node
 	for (auto& itrDecl : func.declarations) {
 		boost::apply_visitor(symbolVisitor, itrDecl);
 	}
+	*/
 
 	// Default this to something other than nullptr, in cases where we
 	// don't have a return we may not actually generate a return stmt below
@@ -253,6 +255,19 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 }
 
 Value* ast_codegen::operator()(const parser::def_expr& def) {
+	const auto defType = def.typeName;
+	const auto defName = def.defName;
+
+	const auto itr = m_symbolTable.find(defName);
+	if (itr != m_symbolTable.end()) {
+		cerr << "Definition of '" << defName << "' already exists" << endl;
+	} else {
+		auto* type = convertMarklarTypeToLLVM(defType);
+		auto* retVal = UndefValue::get(type);
+		m_symbolTable[defName] = retVal;
+		return retVal;
+	}
+
 	return nullptr;
 }
 

@@ -52,7 +52,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(std::string, returnType)
 	(std::string, functionName)
 	(std::vector<parser::def_expr>, args)
-	(std::vector<parser::base_expr_node>, declarations)
 	(std::vector<parser::base_expr_node>, expressions)
 )
 
@@ -146,7 +145,6 @@ namespace parser {
 			>> varName
 			>> '(' >> *(varDef % ',') >> ')'
 			>> '{'
-			>> *varDecl
 			>> *baseExpr
 			>> '}'
 			;
@@ -178,7 +176,7 @@ namespace parser {
 			  x3::lexeme[x3::char_("\"") >> *(x3::char_ - "\"") >> x3::char_("\"")]
 			;
 
-		const auto baseExpr_def = intLiteral | returnExpr | (callExpr >> ';') | ifExpr | varDecl | varAssign | whileLoop;
+		const auto baseExpr_def = intLiteral | returnExpr | (callExpr >> ';') | ifExpr | (varDef >> ';') | varDecl | varAssign | whileLoop;
 
 		// Small hack to only allow op_expr, but allow boost::fusion to use
 		// the base_node_expr type still (if we didn't, then baseExpr would
