@@ -1,6 +1,6 @@
-*.swp
-*.swo
-*.o
+**/*.swp
+**/*.swo
+**/*.o
 **/*.a
 
 *.make
@@ -8,16 +8,9 @@
 *.cmake
 *.includecache
 
-tests/Makefile
-tests/CMakeFiles
-tests/cmake_install.cmake
+**/Makefile
+**/CMake*
+**/cmake_install.cmake
+
 tests/marklarctests
-
-src/libmarklarc/CMakeFiles/*
-
-CMakeCache.txt
-Makefile
-CMakeFiles
-cmake_install.cmake
-
 marklarc
