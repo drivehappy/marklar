@@ -14,11 +14,11 @@ using namespace std;
 
 TEST(ASTTest, BasicFunction) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	ASSERT_TRUE(expr != nullptr);
@@ -34,12 +34,12 @@ TEST(ASTTest, BasicFunction) {
 
 TEST(ASTTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 0;"
+		"i32 main() {"
+		"  i32 i = 0;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	ASSERT_TRUE(expr != nullptr);
@@ -47,7 +47,7 @@ TEST(ASTTest, FunctionSingleDecl) {
 	ASSERT_TRUE(exprF != nullptr);
 
 	// Check declarations
-	EXPECT_EQ(1u, exprF->declarations.size());
+	ASSERT_EQ(1u, exprF->declarations.size());
 	decl_expr* decl = boost::get<decl_expr>(&exprF->declarations[0]);
 	EXPECT_TRUE(decl != nullptr);
 
@@ -63,14 +63,14 @@ TEST(ASTTest, FunctionSingleDecl) {
 
 TEST(ASTTest, FunctionMultiDecl) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 0;"
-		"  marklar j = 1;"
-		"  marklar k = 2;"
+		"i32 main() {"
+		"  i32 i = 0;"
+		"  i32 j = 1;"
+		"  i32 k = 2;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	ASSERT_NE(nullptr, expr);
@@ -107,12 +107,12 @@ TEST(ASTTest, FunctionMultiDecl) {
 
 TEST(ASTTest, FunctionDeclAssign) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar r = 1 + 2;"
+		"i32 main() {"
+		"  i32 r = 1 + 2;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
@@ -137,14 +137,14 @@ TEST(ASTTest, FunctionDeclAssign) {
 
 TEST(ASTTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 1 + 2;"
-		"  marklar j = i + 2;"
-		"  marklar k = i + j;"
+		"i32 main() {"
+		"  i32 i = 1 + 2;"
+		"  i32 j = i + 2;"
+		"  i32 k = i + j;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
@@ -192,12 +192,12 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 
 TEST(ASTTest, FunctionReturn) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  return 1;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
@@ -219,12 +219,12 @@ TEST(ASTTest, FunctionReturn) {
 
 TEST(ASTTest, FunctionReturnComplex) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
@@ -239,11 +239,11 @@ TEST(ASTTest, FunctionReturnComplex) {
 
 TEST(ASTTest, MultipleFunction) {
 	const auto testProgram =
-		"marklar foo() {}"
-		"marklar main() {}";
+		"i32 foo() {}"
+		"i32 main() {}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_EQ(2u, expr->children.size());
@@ -259,21 +259,21 @@ TEST(ASTTest, MultipleFunction) {
 
 TEST(ASTTest, MultipleComplexFunction) {
 	const auto testProgram =
-		"marklar bar() {"
-		"  marklar a = 0;"
-		"  marklar b = 2;"
+		"i32 bar() {"
+		"  i32 a = 0;"
+		"  i32 b = 2;"
 		"  return a + b + 0;"
 		"}"
-		"marklar foo() {"
-		"  marklar a = 0;"
+		"i32 foo() {"
+		"  i32 a = 0;"
 		"  return a + 0;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  return 0 + 1;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_EQ(3u, expr->children.size());
@@ -281,11 +281,11 @@ TEST(ASTTest, MultipleComplexFunction) {
 
 TEST(ASTTest, FunctionArgs) {
 	const auto testProgram =
-		"marklar main(marklar a, marklar b) {"
+		"i32 main(i32 a, i32 b) {"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_TRUE(expr != nullptr);
@@ -300,13 +300,13 @@ TEST(ASTTest, FunctionArgs) {
 
 TEST(ASTTest, FunctionCall) {
 	const auto testProgram =
-		"marklar foo() {}"
-		"marklar main() {"
+		"i32 foo() {}"
+		"i32 main() {"
 		"  foo();"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_TRUE(expr != nullptr);
@@ -327,15 +327,15 @@ TEST(ASTTest, FunctionCall) {
 
 TEST(ASTTest, FunctionCallArgs) {
 	const auto testProgram =
-		"marklar foo(marklar a) {"
+		"i32 foo(i32 a) {"
 		"  return a;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  return foo(45);"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_TRUE(expr != nullptr);
@@ -362,16 +362,16 @@ TEST(ASTTest, FunctionCallArgs) {
 
 TEST(ASTTest, FunctionCallArgsComplex) {
 	const auto testProgram =
-		"marklar bar(marklar a, marklar b) {}"
-		"marklar foo(marklar a) {"
+		"i32 bar(i32 a, i32 b) {}"
+		"i32 foo(i32 a) {"
 		"  return bar(a, 5);"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  return foo(45);"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_NE(nullptr, expr);
@@ -405,13 +405,13 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 
 TEST(ASTTest, FunctionIfStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (i < 4) {"
 		"  }"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
@@ -434,16 +434,16 @@ TEST(ASTTest, FunctionIfStmt) {
 
 TEST(ASTTest, FunctionIfElseStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (i < 4) {"
-		"    marklar j = 0;"
+		"    i32 j = 0;"
 		"  } else {"
-		"    marklar k = 0;"
+		"    i32 k = 0;"
 		"  }"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
@@ -457,13 +457,13 @@ TEST(ASTTest, FunctionIfElseStmt) {
 
 TEST(ASTTest, Assignment) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 3;"
+		"i32 main() {"
+		"  i32 a = 3;"
 		"  a = a + 1;"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
@@ -494,13 +494,13 @@ TEST(ASTTest, Assignment) {
 
 TEST(ASTTest, WhileStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  while (i < 4) {"
 		"  }"
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
@@ -523,10 +523,10 @@ TEST(ASTTest, WhileStmt) {
 
 TEST(ASTTest, FuncCallInIfStmt) {
 	const auto testProgram =
-		"marklar func1(marklar a) {"
+		"i32 func1(i32 a) {"
 		"  return 0;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  if (func1(45) > 0) {"
 		"    return 1;"
 		"  }"
@@ -534,7 +534,7 @@ TEST(ASTTest, FuncCallInIfStmt) {
 		"}";
 
 	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	ASSERT_TRUE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	EXPECT_NE(nullptr, expr);

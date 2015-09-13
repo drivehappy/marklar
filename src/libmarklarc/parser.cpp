@@ -131,7 +131,7 @@ namespace parser {
 		const auto rootNode_def = x3::eps >> +funcExpr >> x3::eoi;
 
 		const auto funcExpr_def =
-			   "marklar"
+			   "i32"
 			>> varName
 			>> '(' >> *(varDef % ',') >> ')'
 			>> '{'
@@ -147,7 +147,7 @@ namespace parser {
 			;
 
 		const auto varDef_def =
-			  "marklar"
+			  "i32"
 			>> varName
 			;
 

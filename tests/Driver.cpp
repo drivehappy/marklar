@@ -72,7 +72,7 @@ namespace {
 
 TEST(DriverTest, BasicFunction) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  return 3;"
 		"}";
 
@@ -90,8 +90,8 @@ TEST(DriverTest, BasicFunction) {
 
 TEST(DriverTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 2;"
+		"i32 main() {"
+		"  i32 i = 2;"
 		"  return i;"
 		"}";
 
@@ -107,9 +107,9 @@ TEST(DriverTest, FunctionSingleDecl) {
 
 TEST(DriverTest, FunctionMultiDecl) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 2;"
-		"  marklar j = 5;"
+		"i32 main() {"
+		"  i32 i = 2;"
+		"  i32 j = 5;"
 		"  return j;"
 		"}";
 
@@ -125,9 +125,9 @@ TEST(DriverTest, FunctionMultiDecl) {
 
 TEST(DriverTest, FunctionMultiDeclSum) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 2;"
-		"  marklar j = 5;"
+		"i32 main() {"
+		"  i32 i = 2;"
+		"  i32 j = 5;"
 		"  return i + j;"
 		"}";
 
@@ -143,9 +143,9 @@ TEST(DriverTest, FunctionMultiDeclSum) {
 
 TEST(DriverTest, FunctionMultiDeclSumComplex) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 2;"
-		"  marklar j = 5;"
+		"i32 main() {"
+		"  i32 i = 2;"
+		"  i32 j = 5;"
 		"  return i + j + 6;"
 		"}";
 
@@ -162,16 +162,16 @@ TEST(DriverTest, FunctionMultiDeclSumComplex) {
 // Tests scoping rules of multiple functions with identical variable names
 TEST(DriverTest, MultipleFunction) {
 	const auto testProgram =
-		"marklar bar() {"
-		"  marklar a = 5;"
+		"i32 bar() {"
+		"  i32 a = 5;"
 		"  return a;"
 		"}"
-		"marklar foo() {"
-		"  marklar a = 4;"
+		"i32 foo() {"
+		"  i32 a = 4;"
 		"  return a;"
 		"}"
-		"marklar main() {"
-		"  marklar a = 3;"
+		"i32 main() {"
+		"  i32 a = 3;"
 		"  return a;"
 		"}";
 
@@ -187,7 +187,7 @@ TEST(DriverTest, MultipleFunction) {
 
 TEST(DriverTest, FunctionUseArgs) {
 	const auto testProgram =
-		"marklar main(marklar a) {"
+		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
 
@@ -205,10 +205,10 @@ TEST(DriverTest, FunctionUseArgs) {
 
 TEST(DriverTest, FunctionCall) {
 	const auto testProgram =
-		"marklar foo(marklar a) {"
+		"i32 foo(i32 a) {"
 		"  return a + 1;"
 		"}"
-		"marklar main(marklar a) {"
+		"i32 main(i32 a) {"
 		"  return foo(a);"
 		"}";
 
@@ -226,7 +226,7 @@ TEST(DriverTest, FunctionCall) {
 
 TEST(DriverTest, FunctionIfStmtReturnSimple) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (3 < 4) {"
 		"    return 1;"
 		"  }"
@@ -245,9 +245,9 @@ TEST(DriverTest, FunctionIfStmtReturnSimple) {
 
 TEST(DriverTest, FunctionIfStmtReturn) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 3;"
-		"  marklar b = 4;"
+		"i32 main() {"
+		"  i32 a = 3;"
+		"  i32 b = 4;"
 		"  if (a < b) {"
 		"    return 1;"
 		"  }"
@@ -266,9 +266,9 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 
 TEST(DriverTest, FunctionIfElseStmtReturn) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 3;"
-		"  marklar b = 4;"
+		"i32 main() {"
+		"  i32 a = 3;"
+		"  i32 b = 4;"
 		"  if (a > b) {"
 		"    return 1;"
 		"  } else {"
@@ -289,7 +289,7 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 
 TEST(DriverTest, OperatorLessThan) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (3 < 4) {"
 		"    return 1;"
 		"  }"
@@ -308,7 +308,7 @@ TEST(DriverTest, OperatorLessThan) {
 
 TEST(DriverTest, OperatorGreaterThan) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (3 > 4) {"
 		"    return 1;"
 		"  }"
@@ -327,7 +327,7 @@ TEST(DriverTest, OperatorGreaterThan) {
 
 TEST(DriverTest, OperatorEqual) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (4 == 4) {"
 		"    return 1;"
 		"  }"
@@ -346,8 +346,8 @@ TEST(DriverTest, OperatorEqual) {
 
 TEST(DriverTest, OperatorModulo) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 5 % 3;"
+		"i32 main() {"
+		"  i32 a = 5 % 3;"
 		"  if (a == 2) {"
 		"    return 1;"
 		"  }"
@@ -366,9 +366,9 @@ TEST(DriverTest, OperatorModulo) {
 
 TEST(DriverTest, WhileStmt) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 2;"
-		"  marklar b = 6;"
+		"i32 main() {"
+		"  i32 a = 2;"
+		"  i32 b = 6;"
 		"  while (a < b) {"
 		"    a = a + 1;"
 		"  }"
@@ -387,9 +387,9 @@ TEST(DriverTest, WhileStmt) {
 
 TEST(DriverTest, LogicalOR) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 0;"
-		"  marklar b = 4;"
+		"i32 main() {"
+		"  i32 a = 0;"
+		"  i32 b = 4;"
 		"  if ((a == 0) || (b == 0)) {"
 		"    return 2;"
 		"  }"
@@ -408,9 +408,9 @@ TEST(DriverTest, LogicalOR) {
 
 TEST(DriverTest, LogicalAND) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 0;"
-		"  marklar b = 4;"
+		"i32 main() {"
+		"  i32 a = 0;"
+		"  i32 b = 4;"
 		"  if ((a == 0) && (b == 0)) {"
 		"    return 2;"
 		"  }"
@@ -429,8 +429,8 @@ TEST(DriverTest, LogicalAND) {
 
 TEST(DriverTest, Division) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 5 / 3;"
+		"i32 main() {"
+		"  i32 i = 5 / 3;"
 		"  return i;"
 		"}";
 
@@ -446,8 +446,8 @@ TEST(DriverTest, Division) {
 
 TEST(DriverTest, Subtraction) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 5 - 3;"
+		"i32 main() {"
+		"  i32 i = 5 - 3;"
 		"  return i;"
 		"}";
 
@@ -463,8 +463,8 @@ TEST(DriverTest, Subtraction) {
 
 TEST(DriverTest, Multiplication) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 5 * 3;"
+		"i32 main() {"
+		"  i32 i = 5 * 3;"
 		"  return i;"
 		"}";
 
@@ -480,11 +480,11 @@ TEST(DriverTest, Multiplication) {
 
 TEST(DriverTest, MultiMethods) {
 	const auto testProgram =
-		"marklar a() {"
+		"i32 a() {"
 		"  return 1;"
 		"}"
-		"marklar main() {"
-		"  marklar i = 5 * 3;"
+		"i32 main() {"
+		"  i32 i = 5 * 3;"
 		"  return i;"
 		"}";
 
@@ -500,10 +500,10 @@ TEST(DriverTest, MultiMethods) {
 
 TEST(DriverTest, FuncCallInIfStmt) {
 	const auto testProgram =
-		"marklar func1(marklar a) {"
+		"i32 func1(i32 a) {"
 		"	return a + 5;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"	if (func1(10) < 15) {"
 		"		return 1;"
 		"	}"
@@ -522,7 +522,7 @@ TEST(DriverTest, FuncCallInIfStmt) {
 
 TEST(DriverTest, IfWith2ReturnStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (1 == 1) {"
 		"    return 1;"
 		"    return 2;"    
@@ -545,7 +545,7 @@ TEST(DriverTest, IfWith2ReturnStmt) {
 
 TEST(DriverTest, WhileWithReturnStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"	while (1 == 1) {"
 		"		return 1;"
 		"	}"
@@ -564,7 +564,7 @@ TEST(DriverTest, WhileWithReturnStmt) {
 
 TEST(DriverTest, FuncWithEarlyReturnStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"	return 2;"
 		"	while (1 == 1) {"
 		"		return 1;"
@@ -584,13 +584,13 @@ TEST(DriverTest, FuncWithEarlyReturnStmt) {
 
 TEST(DriverTest, MultipleChainedFunctionCall) {
 	const auto testProgram =
-		"marklar unaryFunc(marklar n) {"
+		"i32 unaryFunc(i32 n) {"
 		"  return n + 1;"
 		"}"
-		"marklar binaryFunc(marklar a, marklar b) {"
+		"i32 binaryFunc(i32 a, i32 b) {"
 		"  return unaryFunc((a * a) + (b * b));"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  return binaryFunc(1, 5);"
 		"}";
 
@@ -606,7 +606,7 @@ TEST(DriverTest, MultipleChainedFunctionCall) {
 
 TEST(DriverTest, FuncWithPrintf) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"   printf(\"test\");"
 		"   return 0;"
 		"}";
@@ -625,7 +625,7 @@ TEST(DriverTest, FuncWithPrintf) {
 
 TEST(DriverTest, PrintfEscapeChars) {
 	const auto testProgram = R"mrk(
-		marklar main() {
+		i32 main() {
 		   printf("test\n");
 		   return 0;
 		}

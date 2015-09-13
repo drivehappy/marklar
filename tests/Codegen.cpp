@@ -43,7 +43,7 @@ namespace {
 
 TEST(CodegenTest, BasicFunction) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"}";
 
 	base_expr_node root;
@@ -59,8 +59,8 @@ TEST(CodegenTest, BasicFunction) {
  
 TEST(CodegenTest, FunctionSingleDecl) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 0;"
+		"i32 main() {"
+		"  i32 i = 0;"
 		"}";
 
 	base_expr_node root;
@@ -76,8 +76,8 @@ TEST(CodegenTest, FunctionSingleDecl) {
  
 TEST(CodegenTest, FunctionSingleDeclReturn) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 0;"
+		"i32 main() {"
+		"  i32 i = 0;"
 		"  return i;"
 		"}";
 
@@ -93,10 +93,10 @@ TEST(CodegenTest, FunctionSingleDeclReturn) {
 
 TEST(CodegenTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 1 + 2;"
-		"  marklar j = i + 2;"
-		"  marklar k = i + j;"
+		"i32 main() {"
+		"  i32 i = 1 + 2;"
+		"  i32 j = i + 2;"
+		"  i32 k = i + j;"
 		"  return k;"
 		"}";
 
@@ -112,9 +112,9 @@ TEST(CodegenTest, FunctionMultiDeclAssign) {
 
 TEST(CodegenTest, FunctionMultiDeclSum) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar i = 2;"
-		"  marklar j = 5;"
+		"i32 main() {"
+		"  i32 i = 2;"
+		"  i32 j = 5;"
 		"  return i + j;"
 		"}";
 
@@ -130,16 +130,16 @@ TEST(CodegenTest, FunctionMultiDeclSum) {
 
 TEST(CodegenTest, MultipleFunction) {
 	const auto testProgram =
-		"marklar bar() {"
-		"  marklar a = 0;"
-		"  marklar b = 2;"
+		"i32 bar() {"
+		"  i32 a = 0;"
+		"  i32 b = 2;"
 		"  return a + b + 0;"
 		"}"
-		"marklar foo() {"
-		"  marklar a = 4;"
+		"i32 foo() {"
+		"  i32 a = 4;"
 		"  return a + 0;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"  return 0 + 1;"
 		"}";
 
@@ -155,7 +155,7 @@ TEST(CodegenTest, MultipleFunction) {
 
 TEST(CodegenTest, FunctionArgs) {
 	const auto testProgram =
-		"marklar main(marklar a, marklar b) {"
+		"i32 main(i32 a, i32 b) {"
 		"  return 1;"
 		"}";
 
@@ -171,11 +171,11 @@ TEST(CodegenTest, FunctionArgs) {
 
 TEST(CodegenTest, FunctionMultipleArgs) {
 	const auto testProgram =
-		"marklar bar(marklar a) {"
-		"  marklar b = 2;"
+		"i32 bar(i32 a) {"
+		"  i32 b = 2;"
 		"  return 1 + b + 0;"
 		"}"
-		"marklar main(marklar a, marklar b) {"
+		"i32 main(i32 a, i32 b) {"
 		"  return 1;"
 		"}";
 
@@ -191,7 +191,7 @@ TEST(CodegenTest, FunctionMultipleArgs) {
 
 TEST(CodegenTest, FunctionUseArgs) {
 	const auto testProgram =
-		"marklar main(marklar a) {"
+		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
 
@@ -207,10 +207,10 @@ TEST(CodegenTest, FunctionUseArgs) {
 
 TEST(CodegenTest, FunctionCall) {
 	const auto testProgram =
-		"marklar foo(marklar a) {"
+		"i32 foo(i32 a) {"
 		"  return a + 1;"
 		"}"
-		"marklar main(marklar a) {"
+		"i32 main(i32 a) {"
 		"  return foo(a);"
 		"}";
 
@@ -226,7 +226,7 @@ TEST(CodegenTest, FunctionCall) {
 
 TEST(CodegenTest, IfElseStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (3 > 4) {"
 		"    return 1;"
 		"  } else {"
@@ -253,7 +253,7 @@ TEST(CodegenTest, IfElseStmt) {
 
 TEST(CodegenTest, OperatorGreaterThan) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (3 > 4) {"
 		"    return 1;"
 		"  }"
@@ -272,7 +272,7 @@ TEST(CodegenTest, OperatorGreaterThan) {
 
 TEST(CodegenTest, OperatorEqual) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"  if (4 == 4) {"
 		"    return 1;"
 		"  }"
@@ -291,8 +291,8 @@ TEST(CodegenTest, OperatorEqual) {
 
 TEST(CodegenTest, OperatorModulo) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 5 % 3;"
+		"i32 main() {"
+		"  i32 a = 5 % 3;"
 		"  if (a == 2) {"
 		"    return 1;"
 		"  }"
@@ -311,8 +311,8 @@ TEST(CodegenTest, OperatorModulo) {
 
 TEST(CodegenTest, Assignment) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 3;"
+		"i32 main() {"
+		"  i32 a = 3;"
 		"  a = a + 1;"
 		"  return a;"
 		"}";
@@ -329,9 +329,9 @@ TEST(CodegenTest, Assignment) {
 
 TEST(CodegenTest, WhileStmt) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 2;"
-		"  marklar b = 6;"
+		"i32 main() {"
+		"  i32 a = 2;"
+		"  i32 b = 6;"
 		"  while (a < b) {"
 		"    a = a + 1;"
 		"  }"
@@ -350,9 +350,9 @@ TEST(CodegenTest, WhileStmt) {
 
 TEST(CodegenTest, LogicalOR) {
 	const auto testProgram =
-		"marklar main() {"
-		"  marklar a = 0;"
-		"  marklar b = 0;"
+		"i32 main() {"
+		"  i32 a = 0;"
+		"  i32 b = 0;"
 		"  if ((a == 0) || (b == 0)) {"
 		"    return 2;"
 		"  }"
@@ -371,11 +371,11 @@ TEST(CodegenTest, LogicalOR) {
 
 TEST(CodegenTest, SameVariableNameDiffFunctions) {
 	const auto testProgram =
-		"marklar fib(marklar a) {"
+		"i32 fib(i32 a) {"
 		"  return a;"
 		"}"
-		"marklar main() {"
-		"  marklar a = 10;"
+		"i32 main() {"
+		"  i32 a = 10;"
 		"  return fib(a);"
 		"}";
 
@@ -391,10 +391,10 @@ TEST(CodegenTest, SameVariableNameDiffFunctions) {
 
 TEST(CodegenTest, FuncCallInIfStmt) {
 	const auto testProgram =
-		"marklar func1(marklar a) {"
+		"i32 func1(i32 a) {"
 		"	return 0;"
 		"}"
-		"marklar main() {"
+		"i32 main() {"
 		"	if (func1(1) > 0) {"
 		"		return 1;"
 		"	}"
@@ -413,7 +413,7 @@ TEST(CodegenTest, FuncCallInIfStmt) {
 
 TEST(CodegenTest, WhileWithReturnStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"	while (1 == 1) {"
 		"		return 1;"
 		"	}"
@@ -432,7 +432,7 @@ TEST(CodegenTest, WhileWithReturnStmt) {
 
 TEST(CodegenTest, FuncWithEarlyReturnStmt) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"   return 2;"
 		"	while (1 == 1) {"
 		"		return 1;"
@@ -452,7 +452,7 @@ TEST(CodegenTest, FuncWithEarlyReturnStmt) {
 
 TEST(CodegenTest, FuncWithPrintf) {
 	const auto testProgram =
-		"marklar main() {"
+		"i32 main() {"
 		"   printf(\"test\");"
 		"   return 0;"
 		"}";
