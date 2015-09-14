@@ -81,9 +81,16 @@ namespace {
 		}
 
 		// If the left is smaller, we need to cast the right
-		if (lhsType->getIntegerBitWidth() > valueRhs->getType()->getIntegerBitWidth()) {
+		const auto lSize = lhsType->getIntegerBitWidth();
+		const auto rSize = valueRhs->getType()->getIntegerBitWidth();
+
+		if (lSize > rSize) {
 			CastInst* zeroExtendRHS = new ZExtInst(valueRhs, lhsType, "conv", builder.GetInsertBlock());
 			return zeroExtendRHS;
+		} else if (rSize > lSize) {
+			// TODO: Update the function name to more of a general "cast"
+			TruncInst* truncRHS = new TruncInst(valueRhs, lhsType, "conv", builder.GetInsertBlock());
+			return truncRHS;
 		}
 
 		return valueRhs;
@@ -715,11 +722,8 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 			     << typeInfoOut2.str() << " ('" << varRhs->getName().str() << "')"
 			     << endl;
 
-			// TESTING CASTS
-			//CastInst* zeroExtendLHS = new ZExtInst(varLhs, Type::getInt64Ty(getGlobalContext()));
-			CastInst* zeroExtendRHS = new ZExtInst(varRhs, Type::getInt64Ty(getGlobalContext()), "conv", m_builder.GetInsertBlock());
-			//varLhs = zeroExtendLHS;
-			varRhs = zeroExtendRHS;
+			// Cast (zero-extend)
+			varRhs = zextInt(varLhs, varRhs, m_builder);
 		}
 
 		// Call the mapped operator type to create the appropriate one
@@ -790,22 +794,20 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 		return nullptr;
 	}
 
+	/*
 	if (rhsVal->getType()->isPointerTy()) {
 		Value* varLhs = m_builder.CreateLoad(rhsVal);
-
-		cerr << "DEBUG1: Zero extending" << endl;
 
 		return m_builder.CreateStore(varLhs, itr->second);
 	}
 	
 	// Testing
 	if (itr->second->getType()->getIntegerBitWidth() > rhsVal->getType()->getIntegerBitWidth()) {
-		cerr << "DEBUG2: Zero extending" << endl;
-
 		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(getGlobalContext()), "conv", m_builder.GetInsertBlock());
 		return m_builder.CreateStore(zeroExtendRHS, itr->second);
 	}
 	// --
+	*/
 
 	return m_builder.CreateStore(rhsVal, itr->second);
 }

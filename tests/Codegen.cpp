@@ -640,3 +640,22 @@ TEST(CodegenTest, FunctionCallParameterType) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, FunctionOperatorCast) {
+	const auto testProgram = R"mrk(
+		i64 main() {
+			i64 one = 1 << 30;
+			i64 res = 2 * one;
+
+			return res;
+		}
+	)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
