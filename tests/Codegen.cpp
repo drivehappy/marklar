@@ -643,10 +643,11 @@ TEST(CodegenTest, FunctionCallParameterType) {
 TEST(CodegenTest, FunctionOperatorCast) {
 	const auto testProgram = R"mrk(
 		i64 main() {
-			i64 one = 1 << 30;
-			i64 res = 2 * one;
+			i64 a = 1 << 30;
+			i64 b = 2 * a;
+			i64 c = a * 2;
 
-			return res;
+			return a;
 		}
 	)mrk";
 

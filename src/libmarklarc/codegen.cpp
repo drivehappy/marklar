@@ -73,7 +73,7 @@ namespace {
 	}
 
 	// Helper to zero extend a type
-	Value* zextInt(Value* const valueLhs, Value* const valueRhs, IRBuilder<>& builder) {
+	Value* castInt(Value* const valueLhs, Value* const valueRhs, IRBuilder<>& builder) {
 		auto lhsType = valueLhs->getType();
 		if (lhsType->isPointerTy()) {
 			// 'Dereference' the pointer type
@@ -419,7 +419,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				m_builder.CreateStore(varLhs, itr->second);
 			} else {
 				// Zero-extends (casts) the RHS if necessary 
-				exprRhs = zextInt(itr->second, exprRhs, m_builder);
+				exprRhs = castInt(itr->second, exprRhs, m_builder);
 
 				m_builder.CreateStore(exprRhs, itr->second);
 			}
@@ -448,42 +448,15 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	Value* const retVal = m_symbolTable["__retval__"];
 	assert(retVal);
 
-#if 0	
-	if (m_returnGenerated) {
-		/*
-		APInt vInt(64, stoi(val));
-		defaultRet = ConstantInt::get(getGlobalContext(), vInt);
-
-		m_builder.CreateStore(defaultRet, retVal);
-		*/
-		return retVal;
-	}
-#endif
-
 	Value* v = boost::apply_visitor(*this, exprRet.ret);
-	assert(v);
+	//assert(v);
 
-	/* Doesn't work that well, as pointers can throw a wrench into this
-	// Verify the types are equal
-	//if (v->getType() != retVal->getType()) {
-	if (!v->getType()->canLosslesslyBitCastTo(retVal->getType())) {
-		cerr << "Error: Type mismatch:" << endl;
-		cerr << "       Expected:  " << getTypeStr(retVal->getType()) << endl;
-		cerr << "       Attempted: " << getTypeStr(v->getType()) << endl;
+	if (!v) {
+		return nullptr;
 	}
-	*/
-
-	// TESTING
-	if (retVal->getType()->getIntegerBitWidth() > v->getType()->getIntegerBitWidth()) {
-		cerr << "DEBUG3: Zero extending" << endl;
-
-		CastInst* zeroExtendRHS = new ZExtInst(v, retVal->getType(), "conv", m_builder.GetInsertBlock());
-		v = zeroExtendRHS;
-	}
-	// --
 
 	// Cast if necessary
-	v = zextInt(retVal, v, m_builder);
+	v = castInt(retVal, v, m_builder);
 
 	Value* const n = m_builder.CreateStore(v, retVal);
 	assert(n);
@@ -550,7 +523,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 			Function::arg_iterator argItr = calleeF->arg_begin();
 			for (auto& val : ArgsV) {
 				// Cast if necessary
-				val = zextInt(argItr, val, m_builder);
+				val = castInt(argItr, val, m_builder);
 
 				++argItr;
 			}
@@ -694,7 +667,11 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 	};
 
 	Value* varLhs = boost::apply_visitor(*this, op.lhs);
-	assert(varLhs);
+	//assert(varLhs);
+
+	if (!varLhs) {
+		return nullptr;
+	}
 
 	// This acts a chain, e.g.: "1 + 3 + i + k", varLhs is built up for each
 	for (auto& itr : op.operation) {
@@ -709,6 +686,7 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		}
 
 		if (varLhs->getType() != varRhs->getType()) {
+			#if 0
 			string typeInfo1;
 			raw_string_ostream typeInfoOut1(typeInfo1);
 			string typeInfo2;
@@ -721,9 +699,10 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 			     << typeInfoOut1.str() << " ('" << varLhs->getName().str() << "') != "
 			     << typeInfoOut2.str() << " ('" << varRhs->getName().str() << "')"
 			     << endl;
+			#endif
 
 			// Cast (zero-extend)
-			varRhs = zextInt(varLhs, varRhs, m_builder);
+			varRhs = castInt(varLhs, varRhs, m_builder);
 		}
 
 		// Call the mapped operator type to create the appropriate one
