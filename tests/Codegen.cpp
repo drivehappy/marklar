@@ -39,59 +39,59 @@ namespace {
 		return module;
 	}
 
+
+	class CodegenTest : public ::testing::Test {
+	public:
+		CodegenTest()
+		:	m_errorOut(m_errorInfo)
+		{}
+
+		base_expr_node m_root;
+		string m_errorInfo;
+		raw_string_ostream m_errorOut;
+	};
+
 }
 
-TEST(CodegenTest, BasicFunction) {
+TEST_F(CodegenTest, BasicFunction) {
 	const auto testProgram =
 		"i32 main() {"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
-
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
+	EXPECT_TRUE(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
-	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
  
-TEST(CodegenTest, FunctionSingleDecl) {
+TEST_F(CodegenTest, FunctionSingleDecl) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
-
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
+	EXPECT_TRUE(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
-	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
  
-TEST(CodegenTest, FunctionSingleDeclReturn) {
+TEST_F(CodegenTest, FunctionSingleDeclReturn) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"  return i;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionMultiDeclAssign) {
+TEST_F(CodegenTest, FunctionMultiDeclAssign) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 1 + 2;"
@@ -100,17 +100,13 @@ TEST(CodegenTest, FunctionMultiDeclAssign) {
 		"  return k;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionMultiDeclSum) {
+TEST_F(CodegenTest, FunctionMultiDeclSum) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -118,17 +114,13 @@ TEST(CodegenTest, FunctionMultiDeclSum) {
 		"  return i + j;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, MultipleFunction) {
+TEST_F(CodegenTest, MultipleFunction) {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 0;"
@@ -143,33 +135,25 @@ TEST(CodegenTest, MultipleFunction) {
 		"  return 0 + 1;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionArgs) {
+TEST_F(CodegenTest, FunctionArgs) {
 	const auto testProgram =
 		"i32 main(i32 a, i32 b) {"
 		"  return 1;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionMultipleArgs) {
+TEST_F(CodegenTest, FunctionMultipleArgs) {
 	const auto testProgram =
 		"i32 bar(i32 a) {"
 		"  i32 b = 2;"
@@ -179,33 +163,25 @@ TEST(CodegenTest, FunctionMultipleArgs) {
 		"  return 1;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionUseArgs) {
+TEST_F(CodegenTest, FunctionUseArgs) {
 	const auto testProgram =
 		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionCall) {
+TEST_F(CodegenTest, FunctionCall) {
 	const auto testProgram =
 		"i32 foo(i32 a) {"
 		"  return a + 1;"
@@ -214,17 +190,13 @@ TEST(CodegenTest, FunctionCall) {
 		"  return foo(a);"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, IfElseStmt) {
+TEST_F(CodegenTest, IfElseStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -235,23 +207,13 @@ TEST(CodegenTest, IfElseStmt) {
 		"  return 3;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(root);
-
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	module->print(errorOut, nullptr);
-	if (verifyModule(*module, &errorOut)) {
-		cerr << "Error: " << errorInfo << endl;
-	}
-
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, OperatorGreaterThan) {
+TEST_F(CodegenTest, OperatorGreaterThan) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -260,17 +222,13 @@ TEST(CodegenTest, OperatorGreaterThan) {
 		"  return 2;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, OperatorEqual) {
+TEST_F(CodegenTest, OperatorEqual) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (4 == 4) {"
@@ -279,17 +237,13 @@ TEST(CodegenTest, OperatorEqual) {
 		"  return 2;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, OperatorModulo) {
+TEST_F(CodegenTest, OperatorModulo) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 5 % 3;"
@@ -299,17 +253,13 @@ TEST(CodegenTest, OperatorModulo) {
 		"  return 0;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, Assignment) {
+TEST_F(CodegenTest, Assignment) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -317,17 +267,13 @@ TEST(CodegenTest, Assignment) {
 		"  return a;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, WhileStmt) {
+TEST_F(CodegenTest, WhileStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 2;"
@@ -338,17 +284,13 @@ TEST(CodegenTest, WhileStmt) {
 		"  return a;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, LogicalOR) {
+TEST_F(CodegenTest, LogicalOR) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -359,17 +301,13 @@ TEST(CodegenTest, LogicalOR) {
 		"  return 1;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, SameVariableNameDiffFunctions) {
+TEST_F(CodegenTest, SameVariableNameDiffFunctions) {
 	const auto testProgram =
 		"i32 fib(i32 a) {"
 		"  return a;"
@@ -379,17 +317,13 @@ TEST(CodegenTest, SameVariableNameDiffFunctions) {
 		"  return fib(a);"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FuncCallInIfStmt) {
+TEST_F(CodegenTest, FuncCallInIfStmt) {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"	return 0;"
@@ -401,17 +335,13 @@ TEST(CodegenTest, FuncCallInIfStmt) {
 		"   return 0;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, WhileWithReturnStmt) {
+TEST_F(CodegenTest, WhileWithReturnStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"	while (1 == 1) {"
@@ -420,17 +350,13 @@ TEST(CodegenTest, WhileWithReturnStmt) {
 		"   return 0;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FuncWithEarlyReturnStmt) {
+TEST_F(CodegenTest, FuncWithEarlyReturnStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"   return 2;"
@@ -440,17 +366,13 @@ TEST(CodegenTest, FuncWithEarlyReturnStmt) {
 		"   return 0;"
 		"}";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FuncWithPrintf) {
+TEST_F(CodegenTest, FuncWithPrintf) {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test");
@@ -458,17 +380,13 @@ TEST(CodegenTest, FuncWithPrintf) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FuncWithPrintfArgs) {
+TEST_F(CodegenTest, FuncWithPrintfArgs) {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test %d\n", 23);
@@ -476,17 +394,13 @@ TEST(CodegenTest, FuncWithPrintfArgs) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FuncWithPrintfArgsDifferTypes) {
+TEST_F(CodegenTest, FuncWithPrintfArgsDifferTypes) {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test %d\n", 23);
@@ -495,17 +409,13 @@ TEST(CodegenTest, FuncWithPrintfArgsDifferTypes) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, DuplicateDefinition) {
+TEST_F(CodegenTest, DuplicateDefinition) {
 	// Failure expected, but a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main() {
@@ -515,17 +425,13 @@ TEST(CodegenTest, DuplicateDefinition) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, DuplicateDefinitionInFunctionArgs) {
+TEST_F(CodegenTest, DuplicateDefinitionInFunctionArgs) {
 	// Failure expected, a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main(i32 a, i32 a) {
@@ -533,17 +439,13 @@ TEST(CodegenTest, DuplicateDefinitionInFunctionArgs) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, DuplicateDefinitionVarAndArg) {
+TEST_F(CodegenTest, DuplicateDefinitionVarAndArg) {
 	// Failure expected, a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main(i32 a) {
@@ -552,17 +454,13 @@ TEST(CodegenTest, DuplicateDefinitionVarAndArg) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, Primitive_i64) {
+TEST_F(CodegenTest, Primitive_i64) {
 	const auto testProgram = R"mrk(
 		i64 main(i64 a) {
 			i64 b = 2;
@@ -570,17 +468,13 @@ TEST(CodegenTest, Primitive_i64) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, Operator_i32_i64) {
+TEST_F(CodegenTest, Operator_i32_i64) {
 	const auto testProgram = R"mrk(
 		i64 main(i32 a) {
 			i64 b = a + 1;
@@ -588,17 +482,13 @@ TEST(CodegenTest, Operator_i32_i64) {
 		}
 		)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, CastIntegers) {
+TEST_F(CodegenTest, CastIntegers) {
 	const auto testProgram = R"mrk(
 		i64 main(i64 n) {
 			if (n != 2) {
@@ -609,17 +499,13 @@ TEST(CodegenTest, CastIntegers) {
 		}
 	)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionCallParameterType) {
+TEST_F(CodegenTest, FunctionCallParameterType) {
 	const auto testProgram = R"mrk(
 		i64 isPrime(i64 n) {
 			return 1;
@@ -630,17 +516,13 @@ TEST(CodegenTest, FunctionCallParameterType) {
 		}
 	)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
-TEST(CodegenTest, FunctionOperatorCast) {
+TEST_F(CodegenTest, FunctionOperatorCast) {
 	const auto testProgram = R"mrk(
 		i64 main() {
 			i64 a = 1 << 30;
@@ -651,12 +533,8 @@ TEST(CodegenTest, FunctionOperatorCast) {
 		}
 	)mrk";
 
-	base_expr_node root;
-	EXPECT_TRUE(parse(testProgram, root));
+	EXPECT_TRUE(parse(testProgram, m_root));
 
-	string errorInfo;
-	raw_string_ostream errorOut(errorInfo);
-
-	auto module = codegenTest(root);
-	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }

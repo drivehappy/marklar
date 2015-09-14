@@ -68,9 +68,17 @@ namespace {
 		return WEXITSTATUS(r);
 	}
 
+
+	class DriverTest : public ::testing::Test {
+	public:
+		void TearDown() {
+			cleanupFiles();
+		}
+	};
+
 }
 
-TEST(DriverTest, BasicFunction) {
+TEST_F(DriverTest, BasicFunction) {
 	const auto testProgram =
 		"i32 main() {"
 		"  return 3;"
@@ -88,24 +96,19 @@ TEST(DriverTest, BasicFunction) {
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionSingleDecl) {
+TEST_F(DriverTest, FunctionSingleDecl) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
 		"  return i;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionMultiDecl) {
+TEST_F(DriverTest, FunctionMultiDecl) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -113,17 +116,12 @@ TEST(DriverTest, FunctionMultiDecl) {
 		"  return j;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(5, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionMultiDeclSum) {
+TEST_F(DriverTest, FunctionMultiDeclSum) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -131,17 +129,12 @@ TEST(DriverTest, FunctionMultiDeclSum) {
 		"  return i + j;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(7, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionMultiDeclSumComplex) {
+TEST_F(DriverTest, FunctionMultiDeclSumComplex) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -149,18 +142,13 @@ TEST(DriverTest, FunctionMultiDeclSumComplex) {
 		"  return i + j + 6;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(13, runExecutable(g_outputExe));
 }
 
 // Tests scoping rules of multiple functions with identical variable names
-TEST(DriverTest, MultipleFunction) {
+TEST_F(DriverTest, MultipleFunction) {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 5;"
@@ -175,26 +163,16 @@ TEST(DriverTest, MultipleFunction) {
 		"  return a;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(3, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionUseArgs) {
+TEST_F(DriverTest, FunctionUseArgs) {
 	const auto testProgram =
 		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
-
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
 
 	ASSERT_TRUE(createExe(testProgram));
 
@@ -203,7 +181,7 @@ TEST(DriverTest, FunctionUseArgs) {
 	EXPECT_EQ(3, runExecutable(g_outputExe + " arg1 arg2"));
 }
 
-TEST(DriverTest, FunctionCall) {
+TEST_F(DriverTest, FunctionCall) {
 	const auto testProgram =
 		"i32 foo(i32 a) {"
 		"  return a + 1;"
@@ -212,11 +190,6 @@ TEST(DriverTest, FunctionCall) {
 		"  return foo(a);"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
@@ -224,7 +197,7 @@ TEST(DriverTest, FunctionCall) {
 	EXPECT_EQ(4, runExecutable(g_outputExe + " arg1 arg2"));
 }
 
-TEST(DriverTest, FunctionIfStmtReturnSimple) {
+TEST_F(DriverTest, FunctionIfStmtReturnSimple) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 < 4) {"
@@ -233,17 +206,12 @@ TEST(DriverTest, FunctionIfStmtReturnSimple) {
 		"  return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionIfStmtReturn) {
+TEST_F(DriverTest, FunctionIfStmtReturn) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -254,17 +222,12 @@ TEST(DriverTest, FunctionIfStmtReturn) {
 		"  return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FunctionIfElseStmtReturn) {
+TEST_F(DriverTest, FunctionIfElseStmtReturn) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -277,17 +240,12 @@ TEST(DriverTest, FunctionIfElseStmtReturn) {
 		"  return 2;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(0, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, OperatorLessThan) {
+TEST_F(DriverTest, OperatorLessThan) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 < 4) {"
@@ -296,17 +254,12 @@ TEST(DriverTest, OperatorLessThan) {
 		"  return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, OperatorGreaterThan) {
+TEST_F(DriverTest, OperatorGreaterThan) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -315,17 +268,12 @@ TEST(DriverTest, OperatorGreaterThan) {
 		"  return 2;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, OperatorEqual) {
+TEST_F(DriverTest, OperatorEqual) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (4 == 4) {"
@@ -334,17 +282,12 @@ TEST(DriverTest, OperatorEqual) {
 		"  return 2;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, OperatorModulo) {
+TEST_F(DriverTest, OperatorModulo) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 5 % 3;"
@@ -354,17 +297,12 @@ TEST(DriverTest, OperatorModulo) {
 		"  return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, WhileStmt) {
+TEST_F(DriverTest, WhileStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 2;"
@@ -375,17 +313,12 @@ TEST(DriverTest, WhileStmt) {
 		"  return a;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(6, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, LogicalOR) {
+TEST_F(DriverTest, LogicalOR) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -396,17 +329,12 @@ TEST(DriverTest, LogicalOR) {
 		"  return 1;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, LogicalAND) {
+TEST_F(DriverTest, LogicalAND) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -417,68 +345,48 @@ TEST(DriverTest, LogicalAND) {
 		"  return 1;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, Division) {
+TEST_F(DriverTest, Division) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 / 3;"
 		"  return i;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, Subtraction) {
+TEST_F(DriverTest, Subtraction) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 - 3;"
 		"  return i;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, Multiplication) {
+TEST_F(DriverTest, Multiplication) {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 * 3;"
 		"  return i;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, MultiMethods) {
+TEST_F(DriverTest, MultiMethods) {
 	const auto testProgram =
 		"i32 a() {"
 		"  return 1;"
@@ -488,17 +396,12 @@ TEST(DriverTest, MultiMethods) {
 		"  return i;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FuncCallInIfStmt) {
+TEST_F(DriverTest, FuncCallInIfStmt) {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"	return a + 5;"
@@ -510,17 +413,12 @@ TEST(DriverTest, FuncCallInIfStmt) {
 		"   return func1(10);"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(15, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, IfWith2ReturnStmt) {
+TEST_F(DriverTest, IfWith2ReturnStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (1 == 1) {"
@@ -533,17 +431,12 @@ TEST(DriverTest, IfWith2ReturnStmt) {
 		"  return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, WhileWithReturnStmt) {
+TEST_F(DriverTest, WhileWithReturnStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"	while (1 == 1) {"
@@ -552,17 +445,12 @@ TEST(DriverTest, WhileWithReturnStmt) {
 		"   return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(1, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FuncWithEarlyReturnStmt) {
+TEST_F(DriverTest, FuncWithEarlyReturnStmt) {
 	const auto testProgram =
 		"i32 main() {"
 		"	return 2;"
@@ -572,17 +460,12 @@ TEST(DriverTest, FuncWithEarlyReturnStmt) {
 		"   return 0;"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(2, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, MultipleChainedFunctionCall) {
+TEST_F(DriverTest, MultipleChainedFunctionCall) {
 	const auto testProgram =
 		"i32 unaryFunc(i32 n) {"
 		"  return n + 1;"
@@ -594,27 +477,17 @@ TEST(DriverTest, MultipleChainedFunctionCall) {
 		"  return binaryFunc(1, 5);"
 		"}";
 
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
-
 	ASSERT_TRUE(createExe(testProgram));
 
 	EXPECT_EQ(27, runExecutable(g_outputExe));
 }
 
-TEST(DriverTest, FuncWithPrintf) {
+TEST_F(DriverTest, FuncWithPrintf) {
 	const auto testProgram =
 		"i32 main() {"
 		"   printf(\"test\");"
 		"   return 0;"
 		"}";
-
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
 
 	ASSERT_TRUE(createExe(testProgram));
 
@@ -623,18 +496,13 @@ TEST(DriverTest, FuncWithPrintf) {
 	EXPECT_EQ("test", stdoutContents());
 }
 
-TEST(DriverTest, PrintfEscapeChars) {
+TEST_F(DriverTest, PrintfEscapeChars) {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test\n");
 		   return 0;
 		}
 		)mrk";
-
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
 
 	ASSERT_TRUE(createExe(testProgram));
 
@@ -643,18 +511,13 @@ TEST(DriverTest, PrintfEscapeChars) {
 	EXPECT_EQ("test\n", stdoutContents());
 }
 
-TEST(DriverTest, PrintfMultiArg) {
+TEST_F(DriverTest, PrintfMultiArg) {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test: %s %d\n", "hello world", 32);
 		   return 0;
 		}
 		)mrk";
-
-	// Cleanup generated intermediate and executable files
-	BOOST_SCOPE_EXIT(void) {
-		cleanupFiles();
-	} BOOST_SCOPE_EXIT_END
 
 	ASSERT_TRUE(createExe(testProgram));
 
