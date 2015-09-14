@@ -412,24 +412,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				m_builder.CreateStore(varLhs, itr->second);
 			} else {
 				// Zero-extends (casts) the RHS if necessary 
-				{
-					exprRhs = zextInt(itr->second, exprRhs, m_builder);
-					/*
-					auto* itrType = itr->second->getType();
-					if (itrType->isPointerTy()) {
-						// 'Dereference' the pointer type
-						itrType = itrType->getPointerElementType();
-					}
-
-					if (exprRhs->getType()->getIntegerBitWidth() < itrType->getIntegerBitWidth()) {
-						cerr << "DEBUG5: Zero extending" << endl;
-
-						CastInst* zeroExtendRHS = new ZExtInst(exprRhs, itrType, "conv", m_builder.GetInsertBlock());
-						exprRhs = zeroExtendRHS;
-					}
-					*/
-				}
-				// --
+				exprRhs = zextInt(itr->second, exprRhs, m_builder);
 
 				m_builder.CreateStore(exprRhs, itr->second);
 			}
@@ -492,6 +475,9 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	}
 	// --
 
+	// Cast if necessary
+	v = zextInt(retVal, v, m_builder);
+
 	Value* const n = m_builder.CreateStore(v, retVal);
 	assert(n);
 
@@ -551,6 +537,18 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 				calleeF = printf_prototype(getGlobalContext(), m_module, ArgsV);
 			}
 		}
+
+		// Testing argument conversion (see: CodegenTest.FunctionCallParameterType)
+		else {
+			Function::arg_iterator argItr = calleeF->arg_begin();
+			for (auto& val : ArgsV) {
+				// Cast if necessary
+				val = zextInt(argItr, val, m_builder);
+
+				++argItr;
+			}
+		}
+		// --
 	}
 
 	// Check that the number of arguments match with what we expect on the function
