@@ -643,3 +643,23 @@ TEST(DriverTest, PrintfEscapeChars) {
 	EXPECT_EQ("test\n", stdoutContents());
 }
 
+TEST(DriverTest, PrintfMultiArg) {
+	const auto testProgram = R"mrk(
+		i32 main() {
+		   printf("test: %s %d\n", "hello world", 32);
+		   return 0;
+		}
+		)mrk";
+
+	// Cleanup generated intermediate and executable files
+	BOOST_SCOPE_EXIT(void) {
+		cleanupFiles();
+	} BOOST_SCOPE_EXIT_END
+
+	ASSERT_TRUE(createExe(testProgram));
+
+	EXPECT_EQ(0, runExecutable(g_outputExe));
+
+	EXPECT_EQ("test: hello world 32\n", stdoutContents());
+}
+

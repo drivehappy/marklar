@@ -13,6 +13,17 @@ TEST(ParserTest, BasicFunction) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, SkipperStart) {
+	// Has a newline before the function
+	const auto testProgram = R"mrk(
+		i32 main() {
+			return 0;
+		}
+	)mrk";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
 TEST(ParserTest, BasicComment) {
 	const auto testProgram =
 		"// This is a comment\n"
@@ -331,6 +342,16 @@ TEST(ParserTest, String) {
 		"  printf(\"string test\");"
 		"  return 0;"
 		"}";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, PrimitiveType_i64) {
+	const auto testProgram = R"mrk(
+		i64 main() {
+		  return 0;
+		}
+	)mrk";
 
 	EXPECT_TRUE(parse(testProgram));
 }

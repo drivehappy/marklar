@@ -468,6 +468,24 @@ TEST(CodegenTest, FuncWithPrintf) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, FuncWithPrintfArgs) {
+	const auto testProgram = R"mrk(
+		i32 main() {
+		   printf("test %d\n", 23);
+		   return 0;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
 TEST(CodegenTest, DuplicateDefinition) {
 	// Failure expected, but a error should be generated
 	const auto testProgram = R"mrk(
@@ -525,7 +543,22 @@ TEST(CodegenTest, DuplicateDefinitionVarAndArg) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, Primitive_i64) {
+	// Failure expected, a error should be generated
+	const auto testProgram = R"mrk(
+		i64 main(i64 a) {
+			i64 a' = 2;
+			return a';
+		}
+		)mrk";
 
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
 
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
 
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
 

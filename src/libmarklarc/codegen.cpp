@@ -58,13 +58,26 @@ namespace {
 	// e.g. i32 to Type*
 	Type* convertMarklarTypeToLLVM(const string& mrkType) {
 		// TODO Flesh this out with more types
-		return IntegerType::getInt32Ty(getGlobalContext());
+		static map<string, Type*> types = {
+			{ "i32", IntegerType::getInt32Ty(getGlobalContext()) },
+			{ "i64", IntegerType::getInt64Ty(getGlobalContext()) },
+		};
+
+		const auto itr = types.find(mrkType);
+		if (itr == types.end()) {
+			return nullptr;
+		}
+
+		return itr->second;
 	}
 
 	// Helper function for printf
-	Function* printf_prototype(LLVMContext& ctx, Module* mod) {
+	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
 		//FunctionType *printf_type = TypeBuilder<int(char *, ...), false>::get(getGlobalContext());
-		vector<Type*> printf_arg_types = { Type::getInt8PtrTy(ctx) };
+		vector<Type*> printf_arg_types;// = { Type::getInt8PtrTy(ctx) };
+		for (const auto& arg : args) {
+			printf_arg_types.push_back(arg->getType());
+		}
 
 		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
 
@@ -410,12 +423,20 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
 	//cerr << "Generating code for call_expr:" << endl;
 
+	// Build the arguments first, in case this is a vararg we need to know these types
+	std::vector<Value*> ArgsV;
+	//cerr << "  Building call arguments: " << expr.values.size() << endl;
+	for (auto& exprArg : expr.values) {
+		Value* const v = boost::apply_visitor(*this, exprArg);
+		ArgsV.push_back(v);
+	}
+
 	const string& callFuncName = expr.funcName;
 	Function *calleeF = m_module->getFunction(callFuncName);
 	if (calleeF == nullptr) {
 		// TODO: This is a prototype/hack to get printf working, needs to be generalized
 		if (callFuncName == "printf") {
-			calleeF = printf_prototype(getGlobalContext(), m_module);
+			calleeF = printf_prototype(getGlobalContext(), m_module, ArgsV);
 		} else {
 			cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
 			return nullptr;
@@ -426,14 +447,6 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 	if (calleeF->arg_size() != expr.values.size()) {
 		cerr << "Error: Function call expected " << calleeF->arg_size() << " arguments, but got " << expr.values.size() << endl;
 		return nullptr;
-	}
-
-	// Build the arguments
-	std::vector<Value*> ArgsV;
-	//cerr << "  Building call arguments: " << expr.values.size() << endl;
-	for (auto& exprArg : expr.values) {
-		Value* const v = boost::apply_visitor(*this, exprArg);
-		ArgsV.push_back(v);
 	}
 
 	CallInst *callInst = m_builder.CreateCall(calleeF, ArgsV, callFuncName);
