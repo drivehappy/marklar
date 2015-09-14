@@ -13,6 +13,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/Casting.h>
+#include <llvm/Support/raw_ostream.h>
 
 // Debugging
 #include <iostream>
@@ -71,17 +72,55 @@ namespace {
 		return itr->second;
 	}
 
-	// Helper function for printf
-	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
-		//FunctionType *printf_type = TypeBuilder<int(char *, ...), false>::get(getGlobalContext());
-		vector<Type*> printf_arg_types;// = { Type::getInt8PtrTy(ctx) };
+	// Helper to zero extend a type
+	Value* zextInt(Value* const valueLhs, Value* const valueRhs, IRBuilder<>& builder) {
+		auto lhsType = valueLhs->getType();
+		if (lhsType->isPointerTy()) {
+			// 'Dereference' the pointer type
+			lhsType = lhsType->getPointerElementType();
+		}
+
+		// If the left is smaller, we need to cast the right
+		if (lhsType->getIntegerBitWidth() > valueRhs->getType()->getIntegerBitWidth()) {
+			CastInst* zeroExtendRHS = new ZExtInst(valueRhs, lhsType, "conv", builder.GetInsertBlock());
+			return zeroExtendRHS;
+		}
+
+		return valueRhs;
+	}
+
+	// Debug helper to dump out types
+	string getTypeStr(const Type* type) {
+		string typeInfo1;
+		raw_string_ostream t1(typeInfo1);
+
+		type->print(t1);
+
+		return t1.str();
+	}
+
+	// Helper functions for printf
+	FunctionType* printf_type(const vector<Value*>& args) {
+		vector<Type*> printf_arg_types;
 		for (const auto& arg : args) {
 			printf_arg_types.push_back(arg->getType());
 		}
 
-		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
+		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(getGlobalContext()), printf_arg_types, true);
+		return printf_type;
+	}
 
-		Function *func = cast<Function>(mod->getOrInsertFunction("printf", printf_type,
+	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
+		FunctionType* t = printf_type(args);
+		string name = "printf";
+		Function* f;
+
+		// Build new printf function as long as we have the same name and the function types don't match
+		while ((f = mod->getFunction(name)) && (f->getFunctionType() != t)) {
+			name += "1";
+		}
+
+		Function *func = cast<Function>(mod->getOrInsertFunction(name, t,
 				AttributeSet().addAttribute(mod->getContext(), 1U, Attribute::NoAlias)));
 
 		return func;
@@ -123,6 +162,8 @@ Value* ast_codegen::operator()(const string& val) {
 		} else {
 			retVal = localVar;
 		}
+
+		retVal->setName(varName);
 	} else if (is_number(val)) {
 		APInt vInt(32, stol(val));
 		retVal = ConstantInt::get(getGlobalContext(), vInt);
@@ -182,6 +223,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
+	Type* returnType = convertMarklarTypeToLLVM(func.returnType);
 
 	// Determine if this function name has been defined yet
 	auto itr = m_symbolTable.find(func.functionName);
@@ -198,7 +240,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		}
 
 		// Build the final function type
-		FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
+		FunctionType *FT = FunctionType::get(returnType, args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
 		// Add it to the symbol table so we can refer to it later
@@ -212,11 +254,11 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Build a return value in place
 	IRBuilder<> TmpB(&F->getEntryBlock(), F->getEntryBlock().begin());
-	AllocaInst* const Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, "__retval__");
+	AllocaInst* const Alloca = TmpB.CreateAlloca(returnType, nullptr, "__retval__");
 	assert(Alloca);
 	m_symbolTable["__retval__"] = Alloca;
 
-	APInt vInt(32, 0);
+	APInt vInt(returnType->getIntegerBitWidth(), 0);
 	m_builder.CreateStore(ConstantInt::get(getGlobalContext(), vInt), Alloca);
 
 	BasicBlock *ReturnBB = BasicBlock::Create(getGlobalContext(), "return");
@@ -331,11 +373,16 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 
 		// If there is no basic block it indicates it might be at the global-level
 		if (bb) {
+			auto* type = convertMarklarTypeToLLVM(decl.typeName);
+			assert(type);
+
 			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, declName.c_str());
+			Alloca = TmpB.CreateAlloca(type, nullptr, declName.c_str());
 
 			m_symbolTable[declName] = Alloca;
 		} else {
+			/* Don't think this is needed anymore
+
 			// Check if the function was already declared, if not then build it
 			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
@@ -348,12 +395,13 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				// Add this function to the symbol table
 				m_symbolTable[declName] = F;
 			}
+			*/
 		}
 
 		var = Alloca;
 	}
 
-	Value* const exprRhs = boost::apply_visitor(*this, decl.val);
+	Value* exprRhs = boost::apply_visitor(*this, decl.val);
 	if (exprRhs) {
 		// Don't just obtain the variable from codegen, since that produces a load...
 		// instead just look it up directly
@@ -363,6 +411,26 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 				Value *varLhs = m_builder.CreateLoad(exprRhs);
 				m_builder.CreateStore(varLhs, itr->second);
 			} else {
+				// Zero-extends (casts) the RHS if necessary 
+				{
+					exprRhs = zextInt(itr->second, exprRhs, m_builder);
+					/*
+					auto* itrType = itr->second->getType();
+					if (itrType->isPointerTy()) {
+						// 'Dereference' the pointer type
+						itrType = itrType->getPointerElementType();
+					}
+
+					if (exprRhs->getType()->getIntegerBitWidth() < itrType->getIntegerBitWidth()) {
+						cerr << "DEBUG5: Zero extending" << endl;
+
+						CastInst* zeroExtendRHS = new ZExtInst(exprRhs, itrType, "conv", m_builder.GetInsertBlock());
+						exprRhs = zeroExtendRHS;
+					}
+					*/
+				}
+				// --
+
 				m_builder.CreateStore(exprRhs, itr->second);
 			}
 		} else {
@@ -402,8 +470,27 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	}
 #endif
 
-	Value* const v = boost::apply_visitor(*this, exprRet.ret);
+	Value* v = boost::apply_visitor(*this, exprRet.ret);
 	assert(v);
+
+	/* Doesn't work that well, as pointers can throw a wrench into this
+	// Verify the types are equal
+	//if (v->getType() != retVal->getType()) {
+	if (!v->getType()->canLosslesslyBitCastTo(retVal->getType())) {
+		cerr << "Error: Type mismatch:" << endl;
+		cerr << "       Expected:  " << getTypeStr(retVal->getType()) << endl;
+		cerr << "       Attempted: " << getTypeStr(v->getType()) << endl;
+	}
+	*/
+
+	// TESTING
+	if (retVal->getType()->getIntegerBitWidth() > v->getType()->getIntegerBitWidth()) {
+		cerr << "DEBUG3: Zero extending" << endl;
+
+		CastInst* zeroExtendRHS = new ZExtInst(v, retVal->getType(), "conv", m_builder.GetInsertBlock());
+		v = zeroExtendRHS;
+	}
+	// --
 
 	Value* const n = m_builder.CreateStore(v, retVal);
 	assert(n);
@@ -425,7 +512,6 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 
 	// Build the arguments first, in case this is a vararg we need to know these types
 	std::vector<Value*> ArgsV;
-	//cerr << "  Building call arguments: " << expr.values.size() << endl;
 	for (auto& exprArg : expr.values) {
 		Value* const v = boost::apply_visitor(*this, exprArg);
 		ArgsV.push_back(v);
@@ -440,6 +526,30 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 		} else {
 			cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
 			return nullptr;
+		}
+	} else {
+		// TODO: This is a prototype/hack to get printf working, needs to be generalized
+		if (callFuncName == "printf") {
+			// Check if the existing definition works for our call, this might be varargs
+			// which causes definitions to differ, e.g. printf("a") vs printf("a %d", 1);
+			FunctionType* expectedType = printf_type(ArgsV);
+			if (expectedType != calleeF->getFunctionType()) {
+				/* The printf_prototype hacks around this by building new functions currently
+				string typeInfo1;
+				raw_string_ostream expectedTypeStr(typeInfo1);
+				string typeInfo2;
+				raw_string_ostream actualTypeStr(typeInfo2);
+
+				expectedType->print(expectedTypeStr);
+				calleeF->getFunctionType()->print(actualTypeStr);
+
+				cerr << "Error: Type mismatch when attempting to call '" << callFuncName << "':" << endl;
+				cerr << "       Expected:  " << expectedTypeStr.str() << endl;
+				cerr << "       Attempted: " << actualTypeStr.str() << endl;
+				*/
+
+				calleeF = printf_prototype(getGlobalContext(), m_module, ArgsV);
+			}
 		}
 	}
 
@@ -583,7 +693,7 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 
 	// This acts a chain, e.g.: "1 + 3 + i + k", varLhs is built up for each
 	for (auto& itr : op.operation) {
-		Value* const varRhs = boost::apply_visitor(*this, itr.rhs);
+		Value* varRhs = boost::apply_visitor(*this, itr.rhs);
 		assert(varRhs);
 
 		const auto& itr2 = ops.find(itr.op);
@@ -591,6 +701,27 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 			cerr << "Unknown operator: \"" << itr.op << "\"" << endl;
 			assert(false && "Unsupported operator");
 			return nullptr;
+		}
+
+		if (varLhs->getType() != varRhs->getType()) {
+			string typeInfo1;
+			raw_string_ostream typeInfoOut1(typeInfo1);
+			string typeInfo2;
+			raw_string_ostream typeInfoOut2(typeInfo2);
+
+			varLhs->getType()->print(typeInfoOut1);
+			varRhs->getType()->print(typeInfoOut2);
+
+			cerr << "Types don't match (operator '" << itr.op << "'): "
+			     << typeInfoOut1.str() << " ('" << varLhs->getName().str() << "') != "
+			     << typeInfoOut2.str() << " ('" << varRhs->getName().str() << "')"
+			     << endl;
+
+			// TESTING CASTS
+			//CastInst* zeroExtendLHS = new ZExtInst(varLhs, Type::getInt64Ty(getGlobalContext()));
+			CastInst* zeroExtendRHS = new ZExtInst(varRhs, Type::getInt64Ty(getGlobalContext()), "conv", m_builder.GetInsertBlock());
+			//varLhs = zeroExtendLHS;
+			varRhs = zeroExtendRHS;
 		}
 
 		// Call the mapped operator type to create the appropriate one
@@ -662,10 +793,22 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	}
 
 	if (rhsVal->getType()->isPointerTy()) {
-		Value* const varLhs = m_builder.CreateLoad(rhsVal);
+		Value* varLhs = m_builder.CreateLoad(rhsVal);
+
+		cerr << "DEBUG1: Zero extending" << endl;
+
 		return m_builder.CreateStore(varLhs, itr->second);
 	}
 	
+	// Testing
+	if (itr->second->getType()->getIntegerBitWidth() > rhsVal->getType()->getIntegerBitWidth()) {
+		cerr << "DEBUG2: Zero extending" << endl;
+
+		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(getGlobalContext()), "conv", m_builder.GetInsertBlock());
+		return m_builder.CreateStore(zeroExtendRHS, itr->second);
+	}
+	// --
+
 	return m_builder.CreateStore(rhsVal, itr->second);
 }
 

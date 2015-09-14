@@ -486,6 +486,25 @@ TEST(CodegenTest, FuncWithPrintfArgs) {
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
 
+TEST(CodegenTest, FuncWithPrintfArgsDifferTypes) {
+	const auto testProgram = R"mrk(
+		i32 main() {
+		   printf("test %d\n", 23);
+		   printf("another call, different function type");
+		   return 0;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
 TEST(CodegenTest, DuplicateDefinition) {
 	// Failure expected, but a error should be generated
 	const auto testProgram = R"mrk(
@@ -544,13 +563,72 @@ TEST(CodegenTest, DuplicateDefinitionVarAndArg) {
 }
 
 TEST(CodegenTest, Primitive_i64) {
-	// Failure expected, a error should be generated
 	const auto testProgram = R"mrk(
 		i64 main(i64 a) {
-			i64 a' = 2;
-			return a';
+			i64 b = 2;
+			return b;
 		}
 		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, Operator_i32_i64) {
+	const auto testProgram = R"mrk(
+		i64 main(i32 a) {
+			i64 b = a + 1;
+			return b;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, CastIntegers) {
+	const auto testProgram = R"mrk(
+		i64 main(i64 n) {
+			if (n != 2) {
+				return 0;
+			}
+
+			return 1;
+		}
+	)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, FunctionCallParameterType) {
+	const auto testProgram = R"mrk(
+		i64 isPrime(i64 n) {
+			return 1;
+		}
+
+		i64 main() {
+			return isPrime(1);
+		}
+	)mrk";
 
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
