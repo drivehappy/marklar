@@ -289,13 +289,19 @@ TEST(ASTTest, FunctionArgs) {
 	EXPECT_TRUE(expr != nullptr);
 
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF != nullptr);
+	ASSERT_TRUE(exprF != nullptr);
 
-	EXPECT_EQ(2u, exprF->args.size());
-	EXPECT_EQ("a", exprF->args[0].defName);
-	EXPECT_EQ("i32", exprF->args[0].typeName);
-	EXPECT_EQ("b", exprF->args[1].defName);
-	EXPECT_EQ("i32", exprF->args[1].typeName);
+	ASSERT_EQ(2u, exprF->args.size());
+
+	auto* argDef1 = boost::get<def_expr>(&exprF->args[0]);
+	ASSERT_TRUE(argDef1 != nullptr);
+	ASSERT_EQ("a", argDef1->defName);
+	EXPECT_EQ("i32", argDef1->typeName);
+
+	auto* argDef2 = boost::get<def_expr>(&exprF->args[1]);
+	ASSERT_TRUE(argDef2 != nullptr);
+	ASSERT_EQ("b", argDef2->defName);
+	EXPECT_EQ("i32", argDef2->typeName);
 }
 
 TEST(ASTTest, FunctionCall) {

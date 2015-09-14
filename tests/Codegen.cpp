@@ -451,11 +451,12 @@ TEST(CodegenTest, FuncWithEarlyReturnStmt) {
 }
 
 TEST(CodegenTest, FuncWithPrintf) {
-	const auto testProgram =
-		"i32 main() {"
-		"   printf(\"test\");"
-		"   return 0;"
-		"}";
+	const auto testProgram = R"mrk(
+		i32 main() {
+		   printf("test");
+		   return 0;
+		}
+		)mrk";
 
 	base_expr_node root;
 	EXPECT_TRUE(parse(testProgram, root));
@@ -466,5 +467,65 @@ TEST(CodegenTest, FuncWithPrintf) {
 	auto module = codegenTest(root);
 	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
 }
+
+TEST(CodegenTest, DuplicateDefinition) {
+	// Failure expected, but a error should be generated
+	const auto testProgram = R"mrk(
+		i32 main() {
+			i32 a;
+			i32 a;
+			return 0;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, DuplicateDefinitionInFunctionArgs) {
+	// Failure expected, a error should be generated
+	const auto testProgram = R"mrk(
+		i32 main(i32 a, i32 a) {
+			return 0;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_TRUE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+TEST(CodegenTest, DuplicateDefinitionVarAndArg) {
+	// Failure expected, a error should be generated
+	const auto testProgram = R"mrk(
+		i32 main(i32 a) {
+			i32 a = 2;
+			return a;
+		}
+		)mrk";
+
+	base_expr_node root;
+	EXPECT_TRUE(parse(testProgram, root));
+
+	string errorInfo;
+	raw_string_ostream errorOut(errorInfo);
+
+	auto module = codegenTest(root);
+	EXPECT_FALSE(verifyModule(*module, &errorOut)) << errorInfo;
+}
+
+
+
 
 

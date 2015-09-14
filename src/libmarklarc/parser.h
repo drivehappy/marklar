@@ -55,7 +55,7 @@ namespace parser {
 	struct func_expr {
 		std::string returnType;
 		std::string functionName;
-		std::vector<def_expr> args;
+		std::vector<base_expr_node> args;
 		std::vector<base_expr_node> expressions;
 	};
 

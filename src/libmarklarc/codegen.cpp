@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/variant/get.hpp>
 
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
@@ -93,7 +94,8 @@ Value* ast_codegen::operator()(const string& val) {
 
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
-	const string varName = string(TheFunction->getName()) + "_" + val;
+	//const string varName = string(TheFunction->getName()) + "_" + val;
+	const string varName = val;
 
 	Value *retVal = nullptr;
 
@@ -109,7 +111,7 @@ Value* ast_codegen::operator()(const string& val) {
 			retVal = localVar;
 		}
 	} else if (is_number(val)) {
-		APInt vInt(64, stol(val));
+		APInt vInt(32, stol(val));
 		retVal = ConstantInt::get(getGlobalContext(), vInt);
 	} else {
 		// TODO: Prototype hacky code to create a string for printf
@@ -135,7 +137,7 @@ Value* ast_codegen::operator()(const string& val) {
 
 			retVal = geti8StrVal(*m_module, rawString.c_str(), ".str");
 		} else {
-			cerr << "ERROR: Could not find symbol: \"" << val << "\"" << endl;
+			cerr << "ERROR: Could not find symbol: '" << val << "' (internal name: " << varName << ")" << endl;
 			cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
 
 			for (const auto& kv : m_symbolTable) {
@@ -172,8 +174,18 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	auto itr = m_symbolTable.find(func.functionName);
 	if (itr == m_symbolTable.end()) {
 		// Could not find existing function with this name, build it
-		vector<Type*> args(func.args.size(), Type::getInt64Ty(getGlobalContext()));
-		FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
+
+		// Begin with our argument types, we don't need to define names just yet (and it's
+		//   difficult as the symbol table for the function hasn't been added)
+		vector<Type*> args;
+		for (auto& argDef : func.args) {
+			def_expr arg(*boost::get<def_expr>(&argDef));
+
+			args.push_back(convertMarklarTypeToLLVM(arg.typeName));
+		}
+
+		// Build the final function type
+		FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
 		F = Function::Create(FT, Function::ExternalLinkage, func.functionName, m_module);
 
 		// Add it to the symbol table so we can refer to it later
@@ -187,31 +199,37 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 	// Build a return value in place
 	IRBuilder<> TmpB(&F->getEntryBlock(), F->getEntryBlock().begin());
-	AllocaInst* const Alloca = TmpB.CreateAlloca(Type::getInt64Ty(getGlobalContext()), nullptr, "__retval__");
+	AllocaInst* const Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, "__retval__");
 	assert(Alloca);
 	m_symbolTable["__retval__"] = Alloca;
 
-	APInt vInt(64, 0);
+	APInt vInt(32, 0);
 	m_builder.CreateStore(ConstantInt::get(getGlobalContext(), vInt), Alloca);
 
 	BasicBlock *ReturnBB = BasicBlock::Create(getGlobalContext(), "return");
 	m_symbolTable["__retval__BB"] = ReturnBB;
 
-
-	// Add function arguments
-	Function::arg_iterator argItr = F->arg_begin();
-	for (auto& argDef : func.args) {
-		const string argName = string(F->getName()) + "_" + argDef.defName;
-
-		argItr->setName(argName);
-		m_symbolTable[argName] = argItr;
-
-		++argItr;
-	}
-
 	// Create a new visitor, this allows function-level scoping so our symbol table
 	// isn't re-used across other functions
 	ast_codegen symbolVisitor(*this);
+
+	// Add function argument names, the types should have already been setup above
+	Function::arg_iterator argItr = F->arg_begin();
+	for (auto& argDef : func.args) {
+		auto* arg = boost::get<def_expr>(&argDef);
+		assert(arg);
+
+		//const string argName = string(F->getName()) + "_" + arg->defName;
+		const string argName = arg->defName;
+
+		argItr->setName(argName);
+		if (!symbolVisitor.addSymbol(argName, argItr)) {
+			cerr << "Error: Definition of '" << argName << "' already exists" << endl;
+			return nullptr;
+		}
+
+		++argItr;
+	}
 
 	/*
 	// Visit declarations inside the function node
@@ -256,14 +274,17 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 
 Value* ast_codegen::operator()(const parser::def_expr& def) {
 	const auto defType = def.typeName;
-	const auto defName = def.defName;
+	const string& defName = def.defName;
 
 	const auto itr = m_symbolTable.find(defName);
 	if (itr != m_symbolTable.end()) {
-		cerr << "Definition of '" << defName << "' already exists" << endl;
+		cerr << "Error: Definition of '" << defName << "' already exists" << endl;
+		return nullptr;
 	} else {
-		auto* type = convertMarklarTypeToLLVM(defType);
-		auto* retVal = UndefValue::get(type);
+		auto* type = convertMarklarTypeToLLVM(def.typeName);
+		Value* retVal = UndefValue::get(type);
+		retVal->setName(defName);
+
 		m_symbolTable[defName] = retVal;
 		return retVal;
 	}
@@ -279,10 +300,18 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
 
-	const string declName = string(TheFunction->getName()) + "_" + decl.declName;
+	//const string declName = string(TheFunction->getName()) + "_" + decl.declName;
+	const string declName = decl.declName;
 
 	map<string, Value*>::const_iterator itr = m_symbolTable.find(declName);
-	if (itr == m_symbolTable.end()) {
+	if (itr != m_symbolTable.end()) {
+		cerr << "Warning: Variable is shadowing existing: '" << declName << "'" << endl;
+
+		// Use the variable itself
+		var = itr->second;
+	}
+
+	{
 		//cerr << "  Variable referenced for first time: " << decl.declName << endl;
 
 		AllocaInst *Alloca = nullptr;
@@ -290,7 +319,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 		// If there is no basic block it indicates it might be at the global-level
 		if (bb) {
 			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-			Alloca = TmpB.CreateAlloca(Type::getInt64Ty(getGlobalContext()), nullptr, declName.c_str());
+			Alloca = TmpB.CreateAlloca(Type::getInt32Ty(getGlobalContext()), nullptr, declName.c_str());
 
 			m_symbolTable[declName] = Alloca;
 		} else {
@@ -298,9 +327,9 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
 				// Assume for now this has no arguments
-				vector<Type*> args(0, Type::getInt64Ty(getGlobalContext()));
+				vector<Type*> args(0, Type::getInt32Ty(getGlobalContext()));
 
-				FunctionType *FT = FunctionType::get(Type::getInt64Ty(getGlobalContext()), args, false);
+				FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
 				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
 
 				// Add this function to the symbol table
@@ -309,9 +338,6 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 		}
 
 		var = Alloca;
-	} else {
-		// Use the variable itself
-		var = itr->second;
 	}
 
 	Value* const exprRhs = boost::apply_visitor(*this, decl.val);
@@ -611,13 +637,14 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
-	const string varName = string(TheFunction->getName()) + "_" + assign.varName;
+	//const string varName = string(TheFunction->getName()) + "_" + assign.varName;
+	const string varName = assign.varName;
 
 	Value* const rhsVal = boost::apply_visitor(*this, assign.varRhs);
 
 	const auto& itr = m_symbolTable.find(varName);
 	if (itr == m_symbolTable.end()) {
-		cerr << "Unknown variable assignment: \"" << assign.varName << "\"" << endl;
+		cerr << "Unknown variable assignment: '" << assign.varName << "'" << endl;
 		return nullptr;
 	}
 

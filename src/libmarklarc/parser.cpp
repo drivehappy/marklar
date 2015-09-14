@@ -51,7 +51,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 	parser::func_expr,
 	(std::string, returnType)
 	(std::string, functionName)
-	(std::vector<parser::def_expr>, args)
+	(std::vector<parser::base_expr_node>, args)
 	(std::vector<parser::base_expr_node>, expressions)
 )
 

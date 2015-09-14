@@ -17,13 +17,22 @@ namespace marklar {
 	class ast_codegen : public boost::static_visitor<llvm::Value*> {
 	public:
 		using symbolValue_t = std::map<std::string, llvm::Value*>;
-		//using symbolType_t = std::map<std::string, llvm::Type*>;
 
 		ast_codegen(llvm::Module* m, llvm::IRBuilder<>& b)
 		: m_module(m), m_builder(b) {}
 
 		ast_codegen(const ast_codegen& rhs)
 		: m_module(rhs.m_module), m_builder(rhs.m_builder), m_symbolTable(rhs.m_symbolTable) {}
+
+		bool addSymbol(const std::string& name, llvm::Value* val) {
+			const bool exists = (m_symbolTable.find(name) != m_symbolTable.end());
+
+			if (!exists) {
+				m_symbolTable[name] = val;
+			}
+
+			return !exists;
+		}
 
 
 		llvm::Value* operator()(const parser::base_expr& expr);
@@ -44,7 +53,6 @@ namespace marklar {
 		llvm::IRBuilder<>& m_builder;
 
 		symbolValue_t m_symbolTable;
-		//symbolType_t m_symbolType;
 	};
 
 }
