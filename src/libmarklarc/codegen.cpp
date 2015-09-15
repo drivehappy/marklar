@@ -232,6 +232,11 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	Function *F = nullptr;
 	Type* returnType = convertMarklarTypeToLLVM(func.returnType);
 
+	if (!returnType) {
+		cerr << "Unknown type: '" << func.returnType << "'" << endl;
+		return nullptr;
+	}
+
 	// Determine if this function name has been defined yet
 	auto itr = m_symbolTable.find(func.functionName);
 	if (itr == m_symbolTable.end()) {

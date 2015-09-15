@@ -538,3 +538,18 @@ TEST_F(CodegenTest, FunctionOperatorCast) {
 	auto module = codegenTest(m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
+
+TEST_F(CodegenTest, InvalidType) {
+	const auto testProgram = R"mrk(
+		marklar main() {
+			marklar a = 1 << 30;
+
+			return a;
+		}
+	)mrk";
+
+	ASSERT_TRUE(parse(testProgram, m_root));
+
+	auto module = codegenTest(m_root);
+	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+}
