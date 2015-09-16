@@ -91,6 +91,12 @@ BOOST_FUSION_ADAPT_STRUCT(
 	(parser::base_expr_node, varRhs)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+	parser::udf_type,
+	(std::string, typeName)
+	(std::vector<parser::base_expr_node>, internalVars)
+)
+
 
 namespace parser {
 
@@ -134,11 +140,22 @@ namespace parser {
 
 		const x3::rule<class typeName, std::string>			typeName = "typeName";
 
-		
-		// Rules defs
-		const auto start_def = rootNode;
+		const x3::rule<class udfType, udf_type>				udfType = "udfType";
 
-		const auto rootNode_def = x3::eps >> +funcExpr >> x3::eoi;
+		
+		// Rule defs
+		const auto start_def = x3::eps >> rootNode >> x3::eoi;
+
+		const auto rootNode_def =
+			  *(udfType | funcExpr);
+
+		const auto udfType_def =
+			   "type"
+			>> varName
+			>> '{'
+			>> *(varDef >> ';')
+			>> '}'
+			;
 
 		const auto funcExpr_def =
 			   typeName
@@ -241,6 +258,7 @@ namespace parser {
 		BOOST_SPIRIT_DEFINE(
 			start,
 			rootNode,
+			udfType,
 			funcExpr,
 			baseExpr,
 			callBaseExpr,

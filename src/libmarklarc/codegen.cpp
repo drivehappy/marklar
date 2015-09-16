@@ -796,3 +796,7 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	return m_builder.CreateStore(rhsVal, itr->second);
 }
 
+Value* ast_codegen::operator()(const parser::udf_type& expr) {
+	return nullptr;
+}
+

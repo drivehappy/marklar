@@ -356,3 +356,18 @@ TEST(ParserTest, PrimitiveType_i64) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, UserDefinedType_Basic) {
+	const auto testProgram = R"mrk(
+		type MyType {
+			i64 a;
+			i64 b;
+		}
+
+		i64 main() {
+		  return 0;
+		}
+	)mrk";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+

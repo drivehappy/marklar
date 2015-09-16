@@ -18,6 +18,7 @@ namespace parser {
 	struct binary_op;
 	struct while_loop;
 	struct var_assign;
+	struct udf_type;
 
 	typedef boost::variant<
 		boost::recursive_wrapper<base_expr>,
@@ -31,6 +32,7 @@ namespace parser {
 		boost::recursive_wrapper<binary_op>,
 		boost::recursive_wrapper<while_loop>,
 		boost::recursive_wrapper<var_assign>,
+		boost::recursive_wrapper<udf_type>,
 		std::string
 	> base_expr_node;
 
@@ -94,6 +96,11 @@ namespace parser {
 	struct var_assign {
 		std::string varName;
 		base_expr_node varRhs;
+	};
+
+	struct udf_type {
+		std::string typeName;
+		std::vector<base_expr_node> internalVars;
 	};
 
 }
