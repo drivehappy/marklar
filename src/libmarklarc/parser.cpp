@@ -117,32 +117,34 @@ namespace parser {
 
 	namespace marklar {
 		// Rules decls
-		const x3::rule<class start, base_expr_node>			start = "start";
-		const x3::rule<class rootNode, base_expr>   		rootNode = "rootNode";
-		const x3::rule<class funcExpr, func_expr>   		funcExpr = "funcExpr";
-		const x3::rule<class baseExpr, base_expr_node> 		baseExpr = "baseExpr";
-		const x3::rule<class callBaseExpr, base_expr_node> 	callBaseExpr = "callBaseExpr";
-		const x3::rule<class returnExpr, return_expr>  		returnExpr = "returnExpr";
-		const x3::rule<class op_expr, binary_op>     		op_expr = "op_expr";
-		const x3::rule<class op, std::string>      			op = "op";
-		const x3::rule<class callExpr, call_expr>   		callExpr = "callExpr";
-		const x3::rule<class ifExpr, if_expr>       		ifExpr = "ifExpr";
-		const x3::rule<class whileLoop, while_loop> 		whileLoop = "whileLoop";
+		#define BUILD_RULE(name, type) const x3::rule<class name, type> name = "name"
 
-		const x3::rule<class varName, std::string>  		varName = "varName";
-		const x3::rule<class varDef, def_expr>				varDef = "varDef";
-		const x3::rule<class varDecl, decl_expr>    		varDecl = "varDecl";
-		const x3::rule<class varAssign, var_assign> 		varAssign = "varAssign";
-		const x3::rule<class value, std::string>      		value = "value";
-		const x3::rule<class factor, base_expr_node>  		factor = "factor";
-		const x3::rule<class intLiteral, std::string> 		intLiteral = "intLiteral";
-		const x3::rule<class quotedString, std::string> 	quotedString = "quotedString";
+		BUILD_RULE(start, base_expr_node);
+		BUILD_RULE(rootNode, base_expr);
+		BUILD_RULE(funcExpr, func_expr);
+		BUILD_RULE(baseExpr, base_expr_node);
+		BUILD_RULE(callBaseExpr, base_expr_node);
+		BUILD_RULE(returnExpr, return_expr);
+		BUILD_RULE(op_expr, binary_op);
+		BUILD_RULE(op, std::string);
+		BUILD_RULE(callExpr, call_expr);
+		BUILD_RULE(ifExpr, if_expr);
+		BUILD_RULE(whileLoop, while_loop);
 
-		const x3::rule<class typeName, std::string>			typeName = "typeName";
+		BUILD_RULE(varName, std::string);
+		BUILD_RULE(varDef, def_expr);
+		BUILD_RULE(varDecl, decl_expr);
+		BUILD_RULE(varAssign, var_assign);
+		BUILD_RULE(value, std::string);
+		BUILD_RULE(factor, base_expr_node);
+		BUILD_RULE(intLiteral, std::string);
+		BUILD_RULE(quotedString, std::string);
+		//const x3::rule<class varNameDotExpression, std::vector<std::string>>  		varNameDotExpression = "varNameDotExpression";
 
-		const x3::rule<class udfType, udf_type>				udfType = "udfType";
-
+		BUILD_RULE(typeName, std::string);
+		BUILD_RULE(udfType, udf_type);
 		
+
 		// Rule defs
 		const auto start_def = x3::eps >> rootNode >> x3::eoi;
 
@@ -231,10 +233,13 @@ namespace parser {
 			;
 
 		const auto varAssign_def =
+			   //varNameDotExpression
 			   varName
 			>> ('=' >> (op_expr | value))
 			>> ';'
 			;
+
+		//const auto varNameDotExpression_def = *(varName % '.');
 
 		const auto varName_def = x3::lexeme[x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9'")];
 		const auto intLiteral_def = +x3::char_("0-9");
@@ -269,6 +274,7 @@ namespace parser {
 			ifExpr,
 			whileLoop,
 			varName,
+			//varNameDotExpression,
 			varDef,
 			varDecl,
 			varAssign,

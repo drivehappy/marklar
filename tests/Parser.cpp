@@ -371,3 +371,39 @@ TEST(ParserTest, UserDefinedType_Basic) {
 	EXPECT_TRUE(parse(testProgram));
 }
 
+TEST(ParserTest, UserDefinedType_UseBasic) {
+	const auto testProgram = R"mrk(
+		type MyType {
+			i64 a;
+			i64 b;
+		}
+
+		i64 main() {
+			MyType t;
+
+			return 0;
+		}
+	)mrk";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
+TEST(ParserTest, UserDefinedType_UseComplex) {
+	const auto testProgram = R"mrk(
+		type MyType {
+			i64 a;
+			i64 b;
+		}
+
+		i64 main() {
+			MyType t;
+			t.a = 1;
+			t.b = 3;
+
+			return t.b;
+		}
+	)mrk";
+
+	EXPECT_TRUE(parse(testProgram));
+}
+
