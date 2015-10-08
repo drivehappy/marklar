@@ -1,0 +1,17 @@
+i32 main() {
+	// Build me a T-Shirt!
+
+	printf("          _      _         \n");
+	printf("     ____- -____- -____    \n");
+	printf("    |                  |   \n");
+	printf("    |____          ____|   \n");
+	printf("        |          |       \n");
+	printf("        | |_|  |_| |       \n");
+	printf("        |          |       \n");
+	printf("        |          |       \n");
+	printf("        | |_|  |_| |       \n");
+	printf("        |_________ |       \n");
+	printf("\n");
+
+	return 0;
+}
