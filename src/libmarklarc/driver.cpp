@@ -2,7 +2,7 @@
 
 #include <boost/variant/get.hpp>
 
-#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/IRBuilder.h>
 #include "llvm/IR/LLVMContext.h"
 #include <llvm/IR/Module.h>
@@ -11,6 +11,8 @@
 
 #include "parser.h"
 #include "codegen.h"
+
+#include <iostream>
 
 
 using namespace marklar;
@@ -34,9 +36,9 @@ namespace marklar {
 
 			// Generate the code
 			//cout << "Generating code..." << endl;
-			LLVMContext &context = getGlobalContext();
+			LLVMContext context;
 			unique_ptr<Module> module(new Module("", context));
-			IRBuilder<> builder(getGlobalContext());
+			IRBuilder<> builder(context);
 
 			ast_codegen codeGenerator(module.get(), builder);
 

@@ -28,6 +28,10 @@ using namespace std::placeholders;
 
 
 namespace {
+
+	static LLVMContext MyGlobalContext;
+
+
 	bool is_number(const string& s) {
 		return !s.empty() && find_if(s.begin(),
 			s.end(), [](char c) { return !isdigit(c); }) == s.end();
@@ -60,8 +64,8 @@ namespace {
 	Type* convertMarklarTypeToLLVM(const string& mrkType) {
 		// TODO Flesh this out with more types
 		static map<string, Type*> types = {
-			{ "i32", IntegerType::getInt32Ty(getGlobalContext()) },
-			{ "i64", IntegerType::getInt64Ty(getGlobalContext()) },
+			{ "i32", IntegerType::getInt32Ty(MyGlobalContext) },
+			{ "i64", IntegerType::getInt64Ty(MyGlobalContext) },
 		};
 
 		const auto itr = types.find(mrkType);
@@ -113,7 +117,7 @@ namespace {
 			printf_arg_types.push_back(arg->getType());
 		}
 
-		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(getGlobalContext()), printf_arg_types, true);
+		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(MyGlobalContext), printf_arg_types, true);
 		return printf_type;
 	}
 
@@ -128,14 +132,14 @@ namespace {
 		}
 
 		Function *func = cast<Function>(mod->getOrInsertFunction(name, t,
-				AttributeSet().addAttribute(mod->getContext(), 1U, Attribute::NoAlias)));
+				AttributeList().addAttribute(mod->getContext(), 1u, Attribute::NoAlias)));
 
 		return func;
 	}
 
 	// Helper, taken from: http://stackoverflow.com/a/28175502
 	Constant* geti8StrVal(Module& M, char const* str, Twine const& name) {
-		LLVMContext& ctx = getGlobalContext();
+		LLVMContext& ctx = MyGlobalContext;
 		Constant* strConstant = ConstantDataArray::getString(ctx, str);
 		GlobalVariable* GVStr =
 			new GlobalVariable(M, strConstant->getType(), true,
@@ -173,24 +177,24 @@ Value* ast_codegen::operator()(const string& val) {
 		retVal->setName(varName);
 	} else if (is_number(val)) {
 		APInt vInt(32, stol(val));
-		retVal = ConstantInt::get(getGlobalContext(), vInt);
+		retVal = ConstantInt::get(MyGlobalContext, vInt);
 	} else {
 		// TODO: Prototype hacky code to create a string for printf
 		if (isQuotedString(val)) {
 			// This is a string in quotes and is only seen once, therefore build a constant for it
 			const auto rawString = convertEscapedCharacters(trimQuotes(val));
-			//retVal = ConstantDataArray::getString(getGlobalContext(), rawString);
+			//retVal = ConstantDataArray::getString(MyGlobalContext, rawString);
 			/*
-			auto* format_const = ConstantDataArray::getString(getGlobalContext(), rawString);
+			auto* format_const = ConstantDataArray::getString(MyGlobalContext, rawString);
 			GlobalVariable* var = new GlobalVariable(
 				*m_module,
-				ArrayType::get(IntegerType::get(getGlobalContext(), 8), 4),
+				ArrayType::get(IntegerType::get(MyGlobalContext, 8), 4),
 				true,
 				GlobalValue::PrivateLinkage,
 				format_const,
 				".str");
 
-			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(getGlobalContext()));
+			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(MyGlobalContext));
 			//vector<Constant*> indices = { zero, zero };
 			Constant* varRef = ConstantExpr::getGetElementPtr(var, zero);
 			retVal = varRef;
@@ -261,7 +265,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		F = dyn_cast<Function>(itr->second);
 	}
 
-	BasicBlock *BB = BasicBlock::Create(getGlobalContext(), func.functionName.c_str(), F);
+	BasicBlock *BB = BasicBlock::Create(MyGlobalContext, func.functionName.c_str(), F);
 	m_builder.SetInsertPoint(BB);
 
 	// Build a return value in place
@@ -271,9 +275,9 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	m_symbolTable["__retval__"] = Alloca;
 
 	APInt vInt(returnType->getIntegerBitWidth(), 0);
-	m_builder.CreateStore(ConstantInt::get(getGlobalContext(), vInt), Alloca);
+	m_builder.CreateStore(ConstantInt::get(MyGlobalContext, vInt), Alloca);
 
-	BasicBlock *ReturnBB = BasicBlock::Create(getGlobalContext(), "return");
+	BasicBlock *ReturnBB = BasicBlock::Create(MyGlobalContext, "return");
 	m_symbolTable["__retval__BB"] = ReturnBB;
 
 	// Create a new visitor, this allows function-level scoping so our symbol table
@@ -399,9 +403,9 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
 				// Assume for now this has no arguments
-				vector<Type*> args(0, Type::getInt32Ty(getGlobalContext()));
+				vector<Type*> args(0, Type::getInt32Ty(MyGlobalContext));
 
-				FunctionType *FT = FunctionType::get(Type::getInt32Ty(getGlobalContext()), args, false);
+				FunctionType *FT = FunctionType::get(Type::getInt32Ty(MyGlobalContext), args, false);
 				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
 
 				// Add this function to the symbol table
@@ -493,7 +497,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 	if (calleeF == nullptr) {
 		// TODO: This is a prototype/hack to get printf working, needs to be generalized
 		if (callFuncName == "printf") {
-			calleeF = printf_prototype(getGlobalContext(), m_module, ArgsV);
+			calleeF = printf_prototype(MyGlobalContext, m_module, ArgsV);
 		} else {
 			cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
 			return nullptr;
@@ -519,7 +523,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 				cerr << "       Attempted: " << actualTypeStr.str() << endl;
 				*/
 
-				calleeF = printf_prototype(getGlobalContext(), m_module, ArgsV);
+				calleeF = printf_prototype(MyGlobalContext, m_module, ArgsV);
 			}
 		}
 
@@ -560,9 +564,9 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 
 	// Create blocks for the then and else cases, insert the 'then' block at the
 	// end of the function
-	BasicBlock *ThenBB = BasicBlock::Create(getGlobalContext(), "if.then", TheFunction);
-	BasicBlock *ElseBB = BasicBlock::Create(getGlobalContext(), "if.else");
-	BasicBlock *MergeBB = BasicBlock::Create(getGlobalContext(), "if.end");
+	BasicBlock *ThenBB = BasicBlock::Create(MyGlobalContext, "if.then", TheFunction);
+	BasicBlock *ElseBB = BasicBlock::Create(MyGlobalContext, "if.else");
+	BasicBlock *MergeBB = BasicBlock::Create(MyGlobalContext, "if.end");
 
 	m_builder.CreateCondBr(CondV, ThenBB, ElseBB);
 
@@ -722,9 +726,9 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 
-	BasicBlock *LoopBB = BasicBlock::Create(getGlobalContext(), "while.body");
-	BasicBlock *AfterBB = BasicBlock::Create(getGlobalContext(), "while.end");
-	BasicBlock *loopCond = BasicBlock::Create(getGlobalContext(), "while.cond", TheFunction);
+	BasicBlock *LoopBB = BasicBlock::Create(MyGlobalContext, "while.body");
+	BasicBlock *AfterBB = BasicBlock::Create(MyGlobalContext, "while.end");
+	BasicBlock *loopCond = BasicBlock::Create(MyGlobalContext, "while.cond", TheFunction);
 
 	m_builder.CreateBr(loopCond);
 	m_builder.SetInsertPoint(loopCond);
@@ -787,7 +791,7 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	
 	// Testing
 	if (itr->second->getType()->getIntegerBitWidth() > rhsVal->getType()->getIntegerBitWidth()) {
-		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(getGlobalContext()), "conv", m_builder.GetInsertBlock());
+		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(MyGlobalContext), "conv", m_builder.GetInsertBlock());
 		return m_builder.CreateStore(zeroExtendRHS, itr->second);
 	}
 	// --

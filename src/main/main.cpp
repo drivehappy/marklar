@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <iostream>
 
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/options_description.hpp>

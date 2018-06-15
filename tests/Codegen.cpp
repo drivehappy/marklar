@@ -8,7 +8,7 @@
 
 #include <boost/variant/get.hpp>
 
-#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/IRBuilder.h>
 #include "llvm/IR/LLVMContext.h"
 #include <llvm/IR/Module.h>
@@ -23,10 +23,12 @@ using namespace std;
 
 namespace {
 
+	LLVMContext MyGlobalContext;
+
 	unique_ptr<Module> codegenTest(const base_expr_node& root) {
-		LLVMContext &context = getGlobalContext();
+		LLVMContext &context = MyGlobalContext;
 		unique_ptr<Module> module(new Module("", context));
-		IRBuilder<> builder(getGlobalContext());
+		IRBuilder<> builder(MyGlobalContext);
 
 		ast_codegen codeGenerator(module.get(), builder);
 
