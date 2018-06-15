@@ -29,9 +29,6 @@ using namespace std::placeholders;
 
 namespace {
 
-	static LLVMContext MyGlobalContext;
-
-
 	bool is_number(const string& s) {
 		return !s.empty() && find_if(s.begin(),
 			s.end(), [](char c) { return !isdigit(c); }) == s.end();
@@ -61,11 +58,11 @@ namespace {
 
 	// Helper to convert from a marklar type to a LLVM type,
 	// e.g. i32 to Type*
-	Type* convertMarklarTypeToLLVM(const string& mrkType) {
+	Type* convertMarklarTypeToLLVM(LLVMContext& ctx, const string& mrkType) {
 		// TODO Flesh this out with more types
 		static map<string, Type*> types = {
-			{ "i32", IntegerType::getInt32Ty(MyGlobalContext) },
-			{ "i64", IntegerType::getInt64Ty(MyGlobalContext) },
+			{ "i32", IntegerType::getInt32Ty(ctx) },
+			{ "i64", IntegerType::getInt64Ty(ctx) },
 		};
 
 		const auto itr = types.find(mrkType);
@@ -111,18 +108,18 @@ namespace {
 	}
 
 	// Helper functions for printf
-	FunctionType* printf_type(const vector<Value*>& args) {
+	FunctionType* printf_type(LLVMContext& ctx, const vector<Value*>& args) {
 		vector<Type*> printf_arg_types;
 		for (const auto& arg : args) {
 			printf_arg_types.push_back(arg->getType());
 		}
 
-		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(MyGlobalContext), printf_arg_types, true);
+		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
 		return printf_type;
 	}
 
 	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
-		FunctionType* t = printf_type(args);
+		FunctionType* t = printf_type(ctx, args);
 		string name = "printf";
 		Function* f;
 
@@ -138,8 +135,7 @@ namespace {
 	}
 
 	// Helper, taken from: http://stackoverflow.com/a/28175502
-	Constant* geti8StrVal(Module& M, char const* str, Twine const& name) {
-		LLVMContext& ctx = MyGlobalContext;
+	Constant* geti8StrVal(LLVMContext& ctx, Module& M, char const* str, Twine const& name) {
 		Constant* strConstant = ConstantDataArray::getString(ctx, str);
 		GlobalVariable* GVStr =
 			new GlobalVariable(M, strConstant->getType(), true,
@@ -177,30 +173,30 @@ Value* ast_codegen::operator()(const string& val) {
 		retVal->setName(varName);
 	} else if (is_number(val)) {
 		APInt vInt(32, stol(val));
-		retVal = ConstantInt::get(MyGlobalContext, vInt);
+		retVal = ConstantInt::get(*m_context, vInt);
 	} else {
 		// TODO: Prototype hacky code to create a string for printf
 		if (isQuotedString(val)) {
 			// This is a string in quotes and is only seen once, therefore build a constant for it
 			const auto rawString = convertEscapedCharacters(trimQuotes(val));
-			//retVal = ConstantDataArray::getString(MyGlobalContext, rawString);
+			//retVal = ConstantDataArray::getString(*m_context, rawString);
 			/*
-			auto* format_const = ConstantDataArray::getString(MyGlobalContext, rawString);
+			auto* format_const = ConstantDataArray::getString(*m_context, rawString);
 			GlobalVariable* var = new GlobalVariable(
 				*m_module,
-				ArrayType::get(IntegerType::get(MyGlobalContext, 8), 4),
+				ArrayType::get(IntegerType::get(*m_context, 8), 4),
 				true,
 				GlobalValue::PrivateLinkage,
 				format_const,
 				".str");
 
-			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(MyGlobalContext));
+			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(*m_context));
 			//vector<Constant*> indices = { zero, zero };
 			Constant* varRef = ConstantExpr::getGetElementPtr(var, zero);
 			retVal = varRef;
 			*/
 
-			retVal = geti8StrVal(*m_module, rawString.c_str(), ".str");
+			retVal = geti8StrVal(*m_context, *m_module, rawString.c_str(), ".str");
 		} else {
 			cerr << "ERROR: Could not find symbol: '" << val << "' (internal name: " << varName << ")" << endl;
 			cerr << "  SymbolTable size: " << m_symbolTable.size() << endl;
@@ -234,7 +230,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
 
 	Function *F = nullptr;
-	Type* returnType = convertMarklarTypeToLLVM(func.returnType);
+	Type* returnType = convertMarklarTypeToLLVM(*m_context, func.returnType);
 
 	if (!returnType) {
 		cerr << "Unknown type: '" << func.returnType << "'" << endl;
@@ -252,7 +248,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		for (auto& argDef : func.args) {
 			def_expr arg(*boost::get<def_expr>(&argDef));
 
-			args.push_back(convertMarklarTypeToLLVM(arg.typeName));
+			args.push_back(convertMarklarTypeToLLVM(*m_context, arg.typeName));
 		}
 
 		// Build the final function type
@@ -265,7 +261,7 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		F = dyn_cast<Function>(itr->second);
 	}
 
-	BasicBlock *BB = BasicBlock::Create(MyGlobalContext, func.functionName.c_str(), F);
+	BasicBlock *BB = BasicBlock::Create(*m_context, func.functionName.c_str(), F);
 	m_builder.SetInsertPoint(BB);
 
 	// Build a return value in place
@@ -275,9 +271,9 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 	m_symbolTable["__retval__"] = Alloca;
 
 	APInt vInt(returnType->getIntegerBitWidth(), 0);
-	m_builder.CreateStore(ConstantInt::get(MyGlobalContext, vInt), Alloca);
+	m_builder.CreateStore(ConstantInt::get(*m_context, vInt), Alloca);
 
-	BasicBlock *ReturnBB = BasicBlock::Create(MyGlobalContext, "return");
+	BasicBlock *ReturnBB = BasicBlock::Create(*m_context, "return");
 	m_symbolTable["__retval__BB"] = ReturnBB;
 
 	// Create a new visitor, this allows function-level scoping so our symbol table
@@ -352,7 +348,7 @@ Value* ast_codegen::operator()(const parser::def_expr& def) {
 		cerr << "Error: Definition of '" << defName << "' already exists" << endl;
 		return nullptr;
 	} else {
-		auto* type = convertMarklarTypeToLLVM(def.typeName);
+		auto* type = convertMarklarTypeToLLVM(*m_context, def.typeName);
 		Value* retVal = UndefValue::get(type);
 		retVal->setName(defName);
 
@@ -389,7 +385,7 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 
 		// If there is no basic block it indicates it might be at the global-level
 		if (bb) {
-			auto* type = convertMarklarTypeToLLVM(decl.typeName);
+			auto* type = convertMarklarTypeToLLVM(*m_context, decl.typeName);
 			assert(type);
 
 			IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
@@ -403,9 +399,9 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 			auto itr = m_symbolTable.find(declName);
 			if (itr == m_symbolTable.end()) {
 				// Assume for now this has no arguments
-				vector<Type*> args(0, Type::getInt32Ty(MyGlobalContext));
+				vector<Type*> args(0, Type::getInt32Ty(*m_context));
 
-				FunctionType *FT = FunctionType::get(Type::getInt32Ty(MyGlobalContext), args, false);
+				FunctionType *FT = FunctionType::get(Type::getInt32Ty(*m_context), args, false);
 				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
 
 				// Add this function to the symbol table
@@ -497,7 +493,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 	if (calleeF == nullptr) {
 		// TODO: This is a prototype/hack to get printf working, needs to be generalized
 		if (callFuncName == "printf") {
-			calleeF = printf_prototype(MyGlobalContext, m_module, ArgsV);
+			calleeF = printf_prototype(*m_context, m_module, ArgsV);
 		} else {
 			cerr << "Error: Could not find function definition for \"" << callFuncName << "\"" << endl;
 			return nullptr;
@@ -507,7 +503,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 		if (callFuncName == "printf") {
 			// Check if the existing definition works for our call, this might be varargs
 			// which causes definitions to differ, e.g. printf("a") vs printf("a %d", 1);
-			FunctionType* expectedType = printf_type(ArgsV);
+			FunctionType* expectedType = printf_type(*m_context, ArgsV);
 			if (expectedType != calleeF->getFunctionType()) {
 				/* The printf_prototype hacks around this by building new functions currently
 				string typeInfo1;
@@ -523,7 +519,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 				cerr << "       Attempted: " << actualTypeStr.str() << endl;
 				*/
 
-				calleeF = printf_prototype(MyGlobalContext, m_module, ArgsV);
+				calleeF = printf_prototype(*m_context, m_module, ArgsV);
 			}
 		}
 
@@ -564,9 +560,9 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 
 	// Create blocks for the then and else cases, insert the 'then' block at the
 	// end of the function
-	BasicBlock *ThenBB = BasicBlock::Create(MyGlobalContext, "if.then", TheFunction);
-	BasicBlock *ElseBB = BasicBlock::Create(MyGlobalContext, "if.else");
-	BasicBlock *MergeBB = BasicBlock::Create(MyGlobalContext, "if.end");
+	BasicBlock *ThenBB = BasicBlock::Create(*m_context, "if.then", TheFunction);
+	BasicBlock *ElseBB = BasicBlock::Create(*m_context, "if.else");
+	BasicBlock *MergeBB = BasicBlock::Create(*m_context, "if.end");
 
 	m_builder.CreateCondBr(CondV, ThenBB, ElseBB);
 
@@ -726,9 +722,9 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 
-	BasicBlock *LoopBB = BasicBlock::Create(MyGlobalContext, "while.body");
-	BasicBlock *AfterBB = BasicBlock::Create(MyGlobalContext, "while.end");
-	BasicBlock *loopCond = BasicBlock::Create(MyGlobalContext, "while.cond", TheFunction);
+	BasicBlock *LoopBB = BasicBlock::Create(*m_context, "while.body");
+	BasicBlock *AfterBB = BasicBlock::Create(*m_context, "while.end");
+	BasicBlock *loopCond = BasicBlock::Create(*m_context, "while.cond", TheFunction);
 
 	m_builder.CreateBr(loopCond);
 	m_builder.SetInsertPoint(loopCond);
@@ -791,7 +787,7 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	
 	// Testing
 	if (itr->second->getType()->getIntegerBitWidth() > rhsVal->getType()->getIntegerBitWidth()) {
-		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(MyGlobalContext), "conv", m_builder.GetInsertBlock());
+		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(*m_context), "conv", m_builder.GetInsertBlock());
 		return m_builder.CreateStore(zeroExtendRHS, itr->second);
 	}
 	// --

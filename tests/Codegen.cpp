@@ -23,14 +23,11 @@ using namespace std;
 
 namespace {
 
-	LLVMContext MyGlobalContext;
-
-	unique_ptr<Module> codegenTest(const base_expr_node& root) {
-		LLVMContext &context = MyGlobalContext;
+	unique_ptr<Module> codegenTest(LLVMContext& context, const base_expr_node& root) {
 		unique_ptr<Module> module(new Module("", context));
-		IRBuilder<> builder(MyGlobalContext);
+		IRBuilder<> builder(context);
 
-		ast_codegen codeGenerator(module.get(), builder);
+		ast_codegen codeGenerator(&context, module.get(), builder);
 
 		// Codegen for each expression we've found in the root AST
 		const base_expr* expr = boost::get<base_expr>(&root);
@@ -63,7 +60,8 @@ TEST_F(CodegenTest, BasicFunction) {
 	EXPECT_TRUE(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
  
@@ -76,7 +74,8 @@ TEST_F(CodegenTest, FunctionSingleDecl) {
 	EXPECT_TRUE(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
  
@@ -89,7 +88,8 @@ TEST_F(CodegenTest, FunctionSingleDeclReturn) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -104,7 +104,8 @@ TEST_F(CodegenTest, FunctionMultiDeclAssign) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -118,7 +119,8 @@ TEST_F(CodegenTest, FunctionMultiDeclSum) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -139,7 +141,8 @@ TEST_F(CodegenTest, MultipleFunction) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -151,7 +154,8 @@ TEST_F(CodegenTest, FunctionArgs) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -167,7 +171,8 @@ TEST_F(CodegenTest, FunctionMultipleArgs) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -179,7 +184,8 @@ TEST_F(CodegenTest, FunctionUseArgs) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -194,7 +200,8 @@ TEST_F(CodegenTest, FunctionCall) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -211,7 +218,8 @@ TEST_F(CodegenTest, IfElseStmt) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -226,7 +234,8 @@ TEST_F(CodegenTest, OperatorGreaterThan) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -241,7 +250,8 @@ TEST_F(CodegenTest, OperatorEqual) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -257,7 +267,8 @@ TEST_F(CodegenTest, OperatorModulo) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -271,7 +282,8 @@ TEST_F(CodegenTest, Assignment) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -288,7 +300,8 @@ TEST_F(CodegenTest, WhileStmt) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -305,7 +318,8 @@ TEST_F(CodegenTest, LogicalOR) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -321,7 +335,8 @@ TEST_F(CodegenTest, SameVariableNameDiffFunctions) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -339,7 +354,8 @@ TEST_F(CodegenTest, FuncCallInIfStmt) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -354,7 +370,8 @@ TEST_F(CodegenTest, WhileWithReturnStmt) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -370,7 +387,8 @@ TEST_F(CodegenTest, FuncWithEarlyReturnStmt) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -384,7 +402,8 @@ TEST_F(CodegenTest, FuncWithPrintf) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -398,7 +417,8 @@ TEST_F(CodegenTest, FuncWithPrintfArgs) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -413,7 +433,8 @@ TEST_F(CodegenTest, FuncWithPrintfArgsDifferTypes) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -429,7 +450,8 @@ TEST_F(CodegenTest, DuplicateDefinition) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -443,7 +465,8 @@ TEST_F(CodegenTest, DuplicateDefinitionInFunctionArgs) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -458,7 +481,8 @@ TEST_F(CodegenTest, DuplicateDefinitionVarAndArg) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -472,7 +496,8 @@ TEST_F(CodegenTest, Primitive_i64) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -486,7 +511,8 @@ TEST_F(CodegenTest, Operator_i32_i64) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -503,7 +529,8 @@ TEST_F(CodegenTest, CastIntegers) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -520,7 +547,8 @@ TEST_F(CodegenTest, FunctionCallParameterType) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -537,7 +565,8 @@ TEST_F(CodegenTest, FunctionOperatorCast) {
 
 	EXPECT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }
 
@@ -552,6 +581,7 @@ TEST_F(CodegenTest, InvalidType) {
 
 	ASSERT_TRUE(parse(testProgram, m_root));
 
-	auto module = codegenTest(m_root);
+	LLVMContext context;
+	auto module = codegenTest(context, m_root);
 	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
 }

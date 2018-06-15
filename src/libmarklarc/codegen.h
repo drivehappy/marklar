@@ -18,11 +18,11 @@ namespace marklar {
 	public:
 		using symbolValue_t = std::map<std::string, llvm::Value*>;
 
-		ast_codegen(llvm::Module* m, llvm::IRBuilder<>& b)
-		: m_module(m), m_builder(b) {}
+		ast_codegen(llvm::LLVMContext* ctx, llvm::Module* m, llvm::IRBuilder<>& b)
+		: m_context(ctx), m_module(m), m_builder(b) {}
 
 		ast_codegen(const ast_codegen& rhs)
-		: m_module(rhs.m_module), m_builder(rhs.m_builder), m_symbolTable(rhs.m_symbolTable) {}
+		: m_context(rhs.m_context), m_module(rhs.m_module), m_builder(rhs.m_builder), m_symbolTable(rhs.m_symbolTable) {}
 
 		bool addSymbol(const std::string& name, llvm::Value* val) {
 			const bool exists = (m_symbolTable.find(name) != m_symbolTable.end());
@@ -50,6 +50,7 @@ namespace marklar {
 		llvm::Value* operator()(const parser::udf_type& expr);
 
 	private:
+		llvm::LLVMContext* m_context;
 		llvm::Module* m_module;
 		llvm::IRBuilder<>& m_builder;
 

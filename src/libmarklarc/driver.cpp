@@ -40,7 +40,7 @@ namespace marklar {
 			unique_ptr<Module> module(new Module("", context));
 			IRBuilder<> builder(context);
 
-			ast_codegen codeGenerator(module.get(), builder);
+			ast_codegen codeGenerator(&context, module.get(), builder);
 
 			// Generate code for each expression at the root level
 			const base_expr* expr = boost::get<base_expr>(&rootAst);
