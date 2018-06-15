@@ -60,17 +60,13 @@ namespace {
 	// e.g. i32 to Type*
 	Type* convertMarklarTypeToLLVM(LLVMContext& ctx, const string& mrkType) {
 		// TODO Flesh this out with more types
-		static map<string, Type*> types = {
-			{ "i32", IntegerType::getInt32Ty(ctx) },
-			{ "i64", IntegerType::getInt64Ty(ctx) },
-		};
-
-		const auto itr = types.find(mrkType);
-		if (itr == types.end()) {
+		if (mrkType == "i32") {
+			return IntegerType::getInt32Ty(ctx);
+		} else if (mrkType == "i64") {
+			return IntegerType::getInt64Ty(ctx);
+		} else {
 			return nullptr;
 		}
-
-		return itr->second;
 	}
 
 	// Helper to zero extend a type
