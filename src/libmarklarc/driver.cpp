@@ -89,7 +89,7 @@ namespace marklar {
 			{
 				//cout << "Linking..." << endl;
 
-				const string llcCmd = "llc -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
+				const string llcCmd = "llc -relocation-model=pic -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
 
 				const int retval = system(llcCmd.c_str());
 				if (retval != 0) {
