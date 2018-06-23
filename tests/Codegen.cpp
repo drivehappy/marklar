@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "catch.hpp"
 
 #include <parser.h>
 #include <codegen.h>
@@ -39,9 +39,9 @@ namespace {
 	}
 
 
-	class CodegenTest : public ::testing::Test {
+	class CodegenTestFixture {
 	public:
-		CodegenTest()
+		CodegenTestFixture()
 		:	m_errorOut(m_errorInfo)
 		{}
 
@@ -52,48 +52,51 @@ namespace {
 
 }
 
-TEST_F(CodegenTest, BasicFunction) {
+TEST_CASE_METHOD(CodegenTestFixture, "BasicFunction") {
 	const auto testProgram =
 		"i32 main() {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK(verifyModule(*module, &m_errorOut));
 }
  
-TEST_F(CodegenTest, FunctionSingleDecl) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionSingleDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	// Expect this to fail since we require a 'return'
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK(verifyModule(*module, &m_errorOut));
 }
  
-TEST_F(CodegenTest, FunctionSingleDeclReturn) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionSingleDeclReturn") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"  return i;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionMultiDeclAssign) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionMultiDeclAssign") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 1 + 2;"
@@ -102,14 +105,15 @@ TEST_F(CodegenTest, FunctionMultiDeclAssign) {
 		"  return k;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionMultiDeclSum) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionMultiDeclSum") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -117,14 +121,15 @@ TEST_F(CodegenTest, FunctionMultiDeclSum) {
 		"  return i + j;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, MultipleFunction) {
+TEST_CASE_METHOD(CodegenTestFixture, "MultipleFunction") {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 0;"
@@ -139,27 +144,29 @@ TEST_F(CodegenTest, MultipleFunction) {
 		"  return 0 + 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionArgs) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionArgs") {
 	const auto testProgram =
 		"i32 main(i32 a, i32 b) {"
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionMultipleArgs) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionMultipleArgs") {
 	const auto testProgram =
 		"i32 bar(i32 a) {"
 		"  i32 b = 2;"
@@ -169,27 +176,29 @@ TEST_F(CodegenTest, FunctionMultipleArgs) {
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionUseArgs) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionUseArgs") {
 	const auto testProgram =
 		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionCall) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionCall") {
 	const auto testProgram =
 		"i32 foo(i32 a) {"
 		"  return a + 1;"
@@ -198,14 +207,15 @@ TEST_F(CodegenTest, FunctionCall) {
 		"  return foo(a);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, IfElseStmt) {
+TEST_CASE_METHOD(CodegenTestFixture, "IfElseStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -216,14 +226,15 @@ TEST_F(CodegenTest, IfElseStmt) {
 		"  return 3;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, OperatorGreaterThan) {
+TEST_CASE_METHOD(CodegenTestFixture, "OperatorGreaterThan") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -232,14 +243,15 @@ TEST_F(CodegenTest, OperatorGreaterThan) {
 		"  return 2;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, OperatorEqual) {
+TEST_CASE_METHOD(CodegenTestFixture, "OperatorEqual") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (4 == 4) {"
@@ -248,14 +260,15 @@ TEST_F(CodegenTest, OperatorEqual) {
 		"  return 2;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, OperatorModulo) {
+TEST_CASE_METHOD(CodegenTestFixture, "OperatorModulo") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 5 % 3;"
@@ -265,14 +278,15 @@ TEST_F(CodegenTest, OperatorModulo) {
 		"  return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, Assignment) {
+TEST_CASE_METHOD(CodegenTestFixture, "Assignment") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -280,14 +294,15 @@ TEST_F(CodegenTest, Assignment) {
 		"  return a;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, WhileStmt) {
+TEST_CASE_METHOD(CodegenTestFixture, "WhileStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 2;"
@@ -298,14 +313,15 @@ TEST_F(CodegenTest, WhileStmt) {
 		"  return a;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, LogicalOR) {
+TEST_CASE_METHOD(CodegenTestFixture, "LogicalOR") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -316,14 +332,15 @@ TEST_F(CodegenTest, LogicalOR) {
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, SameVariableNameDiffFunctions) {
+TEST_CASE_METHOD(CodegenTestFixture, "SameVariableNameDiffFunctions") {
 	const auto testProgram =
 		"i32 fib(i32 a) {"
 		"  return a;"
@@ -333,14 +350,15 @@ TEST_F(CodegenTest, SameVariableNameDiffFunctions) {
 		"  return fib(a);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FuncCallInIfStmt) {
+TEST_CASE_METHOD(CodegenTestFixture, "FuncCallInIfStmt") {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"	return 0;"
@@ -352,14 +370,15 @@ TEST_F(CodegenTest, FuncCallInIfStmt) {
 		"   return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, WhileWithReturnStmt) {
+TEST_CASE_METHOD(CodegenTestFixture, "WhileWithReturnStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"	while (1 == 1) {"
@@ -368,14 +387,15 @@ TEST_F(CodegenTest, WhileWithReturnStmt) {
 		"   return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FuncWithEarlyReturnStmt) {
+TEST_CASE_METHOD(CodegenTestFixture, "FuncWithEarlyReturnStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"   return 2;"
@@ -385,14 +405,15 @@ TEST_F(CodegenTest, FuncWithEarlyReturnStmt) {
 		"   return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FuncWithPrintf) {
+TEST_CASE_METHOD(CodegenTestFixture, "FuncWithPrintf") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test");
@@ -400,14 +421,15 @@ TEST_F(CodegenTest, FuncWithPrintf) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FuncWithPrintfArgs) {
+TEST_CASE_METHOD(CodegenTestFixture, "FuncWithPrintfArgs") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test %d\n", 23);
@@ -415,14 +437,15 @@ TEST_F(CodegenTest, FuncWithPrintfArgs) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FuncWithPrintfArgsDifferTypes) {
+TEST_CASE_METHOD(CodegenTestFixture, "FuncWithPrintfArgsDifferTypes") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test %d\n", 23);
@@ -431,14 +454,15 @@ TEST_F(CodegenTest, FuncWithPrintfArgsDifferTypes) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, DuplicateDefinition) {
+TEST_CASE_METHOD(CodegenTestFixture, "DuplicateDefinition") {
 	// Failure expected, but a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main() {
@@ -448,14 +472,15 @@ TEST_F(CodegenTest, DuplicateDefinition) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, DuplicateDefinitionInFunctionArgs) {
+TEST_CASE_METHOD(CodegenTestFixture, "DuplicateDefinitionInFunctionArgs") {
 	// Failure expected, a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main(i32 a, i32 a) {
@@ -463,14 +488,15 @@ TEST_F(CodegenTest, DuplicateDefinitionInFunctionArgs) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_TRUE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, DuplicateDefinitionVarAndArg) {
+TEST_CASE_METHOD(CodegenTestFixture, "DuplicateDefinitionVarAndArg") {
 	// Failure expected, a error should be generated
 	const auto testProgram = R"mrk(
 		i32 main(i32 a) {
@@ -479,14 +505,15 @@ TEST_F(CodegenTest, DuplicateDefinitionVarAndArg) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, Primitive_i64) {
+TEST_CASE_METHOD(CodegenTestFixture, "Primitive_i64") {
 	const auto testProgram = R"mrk(
 		i64 main(i64 a) {
 			i64 b = 2;
@@ -494,14 +521,15 @@ TEST_F(CodegenTest, Primitive_i64) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, Operator_i32_i64) {
+TEST_CASE_METHOD(CodegenTestFixture, "Operator_i32_i64") {
 	const auto testProgram = R"mrk(
 		i64 main(i32 a) {
 			i64 b = a + 1;
@@ -509,14 +537,15 @@ TEST_F(CodegenTest, Operator_i32_i64) {
 		}
 		)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, CastIntegers) {
+TEST_CASE_METHOD(CodegenTestFixture, "CastIntegers") {
 	const auto testProgram = R"mrk(
 		i64 main(i64 n) {
 			if (n != 2) {
@@ -527,14 +556,15 @@ TEST_F(CodegenTest, CastIntegers) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionCallParameterType) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionCallParameterType") {
 	const auto testProgram = R"mrk(
 		i64 isPrime(i64 n) {
 			return 1;
@@ -545,14 +575,15 @@ TEST_F(CodegenTest, FunctionCallParameterType) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, FunctionOperatorCast) {
+TEST_CASE_METHOD(CodegenTestFixture, "FunctionOperatorCast") {
 	const auto testProgram = R"mrk(
 		i64 main() {
 			i64 a = 1 << 30;
@@ -563,14 +594,15 @@ TEST_F(CodegenTest, FunctionOperatorCast) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram, m_root));
+	CHECK(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }
 
-TEST_F(CodegenTest, InvalidType) {
+TEST_CASE_METHOD(CodegenTestFixture, "InvalidType") {
 	const auto testProgram = R"mrk(
 		marklar main() {
 			marklar a = 1 << 30;
@@ -579,9 +611,10 @@ TEST_F(CodegenTest, InvalidType) {
 		}
 	)mrk";
 
-	ASSERT_TRUE(parse(testProgram, m_root));
+	REQUIRE(parse(testProgram, m_root));
 
 	LLVMContext context;
 	auto module = codegenTest(context, m_root);
-	EXPECT_FALSE(verifyModule(*module, &m_errorOut)) << m_errorInfo;
+	INFO(m_errorInfo);
+	CHECK_FALSE(verifyModule(*module, &m_errorOut));
 }

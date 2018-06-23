@@ -1,19 +1,19 @@
-#include <gtest/gtest.h>
+#include "catch.hpp"
 
 #include <parser.h>
 
 using namespace marklar;
 
 
-TEST(ParserTest, BasicFunction) {
+TEST_CASE("ParserTest_BasicFunction") {
 	const auto testProgram =
 		"i32 main() {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, SkipperStart) {
+TEST_CASE("ParserTest_SkipperStart") {
 	// Has a newline before the function
 	const auto testProgram = R"mrk(
 		i32 main() {
@@ -21,64 +21,64 @@ TEST(ParserTest, SkipperStart) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, BasicComment) {
+TEST_CASE("ParserTest_BasicComment") {
 	const auto testProgram =
 		"// This is a comment\n"
 		"i32 main() {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, ComplexComment) {
+TEST_CASE("ParserTest_ComplexComment") {
 	const auto testProgram =
 		"//// Blah //a//a//a This is a comment /\n"
 		"i32 main() {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, InvalidComment) {
+TEST_CASE("ParserTest_InvalidComment") {
 	const auto testProgram =
 		"a // This is a comment\n"
 		"i32 main() {"
 		"}";
 
-	EXPECT_FALSE(parse(testProgram));
+	REQUIRE_FALSE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionSingleDecl) {
+TEST_CASE("ParserTest_FunctionSingleDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionSingleDecl_NameCheck1) {
+TEST_CASE("ParserTest_FunctionSingleDecl_NameCheck1") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i09za_ = 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionSingleDecl_NameCheck2) {
+TEST_CASE("ParserTest_FunctionSingleDecl_NameCheck2") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i' = 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionMultiDecl) {
+TEST_CASE("ParserTest_FunctionMultiDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
@@ -86,19 +86,19 @@ TEST(ParserTest, FunctionMultiDecl) {
 		"  i32 k = 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionDeclAssign) {
+TEST_CASE("ParserTest_FunctionDeclAssign") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 r = 1 + 2;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionMultiDeclAssign) {
+TEST_CASE("ParserTest_FunctionMultiDeclAssign") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 1 + 2;"
@@ -106,36 +106,36 @@ TEST(ParserTest, FunctionMultiDeclAssign) {
 		"  i32 k = i + j;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionReturn) {
+TEST_CASE("ParserTest_FunctionReturn") {
 	const auto testProgram =
 		"i32 main() {"
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionReturnComplex) {
+TEST_CASE("ParserTest_FunctionReturnComplex") {
 	const auto testProgram =
 		"i32 main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, MultipleFunction) {
+TEST_CASE("ParserTest_MultipleFunction") {
 	const auto testProgram =
 		"i32 foo() {}"
 		"i32 main() {}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, MultipleComplexFunction) {
+TEST_CASE("ParserTest_MultipleComplexFunction") {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 0;"
@@ -149,38 +149,38 @@ TEST(ParserTest, MultipleComplexFunction) {
 		"  return 0 + 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionArgs) {
+TEST_CASE("ParserTest_FunctionArgs") {
 	const auto testProgram =
 		"i32 main(i32 a, i32 b) {"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionCall) {
+TEST_CASE("ParserTest_FunctionCall") {
 	const auto testProgram =
 		"i32 foo() {}"
 		"i32 main() {"
 		"  foo();"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionCallArgs) {
+TEST_CASE("ParserTest_FunctionCallArgs") {
 	const auto testProgram =
 		"i32 foo(i32 a) {}"
 		"i32 main() {"
 		"  foo(45);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionCallArgsComplex) {
+TEST_CASE("ParserTest_FunctionCallArgsComplex") {
 	const auto testProgram =
 		"i32 bar(i32 a, i32 b) {}"
 		"i32 foo(i32 a) {"
@@ -190,20 +190,20 @@ TEST(ParserTest, FunctionCallArgsComplex) {
 		"  return foo(45);"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionIfStmt) {
+TEST_CASE("ParserTest_FunctionIfStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (i < 4) {"
 		"  }"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FunctionIfElseStmt) {
+TEST_CASE("ParserTest_FunctionIfElseStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (i < 4) {"
@@ -211,10 +211,10 @@ TEST(ParserTest, FunctionIfElseStmt) {
 		"  }"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, Assignment) {
+TEST_CASE("ParserTest_Assignment") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -222,10 +222,10 @@ TEST(ParserTest, Assignment) {
 		"  return a;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, WhileStmt) {
+TEST_CASE("ParserTest_WhileStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  while (i < 4) {"
@@ -235,10 +235,10 @@ TEST(ParserTest, WhileStmt) {
 		"  }"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, LogicalOR) {
+TEST_CASE("ParserTest_LogicalOR") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -249,50 +249,50 @@ TEST(ParserTest, LogicalOR) {
 		"  return 1;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, Division) {
+TEST_CASE("ParserTest_Division") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 / 3;"
 		"  return i;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, Subtraction) {
+TEST_CASE("ParserTest_Subtraction") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 - 3;"
 		"  return i;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, RightShift) {
+TEST_CASE("ParserTest_RightShift") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 257 >> 8;"
 		"  return i;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, Multiplication) {
+TEST_CASE("ParserTest_Multiplication") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 8 * 4;"
 		"  return i;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, ComplexEulerProblem1) {
+TEST_CASE("ParserTest_ComplexEulerProblem1") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 sum = 0;"
@@ -306,10 +306,10 @@ TEST(ParserTest, ComplexEulerProblem1) {
 		"  return sum;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, FuncCallInIfStmt) {
+TEST_CASE("ParserTest_FuncCallInIfStmt") {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"  return 0;"
@@ -321,10 +321,10 @@ TEST(ParserTest, FuncCallInIfStmt) {
 		"  return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, LogicalAnd) {
+TEST_CASE("ParserTest_LogicalAnd") {
 	const auto testProgram =
 		"i32 main() {"
 		"  while ((0 != 1) && (0 != 1)) {"
@@ -333,30 +333,30 @@ TEST(ParserTest, LogicalAnd) {
 		"  return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, String) {
+TEST_CASE("ParserTest_String") {
 	const auto testProgram =
 		"i32 main() {"
 		"  printf(\"string test\");"
 		"  return 0;"
 		"}";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, PrimitiveType_i64) {
+TEST_CASE("ParserTest_PrimitiveType_i64") {
 	const auto testProgram = R"mrk(
 		i64 main() {
 		  return 0;
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, UserDefinedType_Basic) {
+TEST_CASE("ParserTest_UserDefinedType_Basic") {
 	const auto testProgram = R"mrk(
 		type MyType {
 			i64 a;
@@ -368,10 +368,10 @@ TEST(ParserTest, UserDefinedType_Basic) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }
 
-TEST(ParserTest, UserDefinedType_UseBasic) {
+TEST_CASE("ParserTest_UserDefinedType_UseBasic") {
 	const auto testProgram = R"mrk(
 		type MyType {
 			i64 a;
@@ -385,5 +385,5 @@ TEST(ParserTest, UserDefinedType_UseBasic) {
 		}
 	)mrk";
 
-	EXPECT_TRUE(parse(testProgram));
+	REQUIRE(parse(testProgram));
 }

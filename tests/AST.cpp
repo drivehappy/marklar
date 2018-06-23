@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "catch.hpp"
 
 #include <parser.h>
 
@@ -12,56 +12,56 @@ using namespace marklar;
 using namespace parser;
 using namespace std;
 
-TEST(ASTTest, BasicFunction) {
+TEST_CASE("ASTTest_BasicFunction") {
 	const auto testProgram =
 		"i32 main() {"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	ASSERT_TRUE(expr != nullptr);
+	REQUIRE(expr != nullptr);
 	
 	// We expect to have our func_expr in this root node
-	EXPECT_EQ(1u, expr->children.size());
+	CHECK(1u == expr->children.size());
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF != nullptr);
+	REQUIRE(exprF != nullptr);
 
 	// Check the function name
-	EXPECT_EQ("main", exprF->functionName);
+	CHECK("main" == exprF->functionName);
 }
 
-TEST(ASTTest, FunctionSingleDecl) {
+TEST_CASE("ASTTest_FunctionSingleDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	ASSERT_TRUE(expr != nullptr);
+	REQUIRE(expr != nullptr);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	ASSERT_TRUE(exprF != nullptr);
+	REQUIRE(exprF != nullptr);
 
 	// Check declarations
-	ASSERT_EQ(1u, exprF->expressions.size());
+	REQUIRE(1u == exprF->expressions.size());
 	decl_expr* decl = boost::get<decl_expr>(&exprF->expressions[0]);
-	EXPECT_TRUE(decl != nullptr);
+	REQUIRE(decl != nullptr);
 
-	EXPECT_EQ("i", decl->declName);
+	CHECK("i" == decl->declName);
 
 	binary_op* opVal = boost::get<binary_op>(&decl->val);
-	EXPECT_TRUE(opVal != nullptr);
+	REQUIRE(opVal != nullptr);
 
 	string* opValStr = boost::get<string>(&opVal->lhs);
-	EXPECT_TRUE(opValStr != nullptr);
-	EXPECT_EQ("0", *opValStr);
+	REQUIRE(opValStr != nullptr);
+	CHECK("0" == *opValStr);
 }
 
-TEST(ASTTest, FunctionMultiDecl) {
+TEST_CASE("ASTTest_FunctionMultiDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 0;"
@@ -70,15 +70,15 @@ TEST(ASTTest, FunctionMultiDecl) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	ASSERT_NE(nullptr, expr);
+	REQUIRE(expr);
 
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	ASSERT_NE(nullptr, exprF);
+	REQUIRE(exprF);
 
-	ASSERT_EQ(3u, exprF->expressions.size());
+	REQUIRE(3u == exprF->expressions.size());
 
 	const map<string, string> expectedNameVals = {
 		{"i", "0"},
@@ -89,53 +89,53 @@ TEST(ASTTest, FunctionMultiDecl) {
 	for (auto& funcDecl : exprF->expressions) {
 		// Check declarations
 		decl_expr* decl = boost::get<decl_expr>(&funcDecl);
-		EXPECT_TRUE(decl != nullptr);
+		REQUIRE(decl != nullptr);
 
 		const auto itr = expectedNameVals.find(decl->declName);
-		EXPECT_TRUE(itr != expectedNameVals.end());
+		REQUIRE(itr != expectedNameVals.end());
 
-		EXPECT_EQ(itr->first, decl->declName);
+		CHECK(itr->first == decl->declName);
 
 		binary_op* valOp = boost::get<binary_op>(&decl->val);
-		EXPECT_NE(nullptr, valOp);
+		CHECK(valOp);
 
 		string* lhsVal = boost::get<string>(&valOp->lhs);
-		EXPECT_NE(nullptr, lhsVal);
-		EXPECT_EQ(itr->second, *lhsVal);
+		CHECK(lhsVal);
+		CHECK(itr->second == *lhsVal);
 	}
 }
 
-TEST(ASTTest, FunctionDeclAssign) {
+TEST_CASE("ASTTest_FunctionDeclAssign") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 r = 1 + 2;"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
 
 	// Check declarations
-	ASSERT_EQ(1u, exprF->expressions.size());
+	REQUIRE(1u == exprF->expressions.size());
 	decl_expr* decl = boost::get<decl_expr>(&exprF->expressions[0]);
-	ASSERT_TRUE(decl != nullptr);
+	REQUIRE(decl != nullptr);
 
-	EXPECT_EQ("r", decl->declName);
+	CHECK("r" == decl->declName);
 
 	binary_op* opExpr = boost::get<binary_op>(&decl->val);
-	EXPECT_TRUE(opExpr != nullptr);
-	EXPECT_EQ(1u, opExpr->operation.size());
+	REQUIRE(opExpr != nullptr);
+	CHECK(1u == opExpr->operation.size());
 
 	// Check decl value
-	EXPECT_EQ("+", opExpr->operation[0].op);
+	CHECK("+" == opExpr->operation[0].op);
 
 	string* rhsVal = boost::get<string>(&opExpr->operation[0].rhs);
-	EXPECT_EQ("2", *rhsVal);
+	CHECK("2" == *rhsVal);
 }
 
-TEST(ASTTest, FunctionMultiDeclAssign) {
+TEST_CASE("ASTTest_FunctionMultiDeclAssign") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 1 + 2;"
@@ -144,17 +144,17 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
 
 	// Check declarations
-	EXPECT_EQ(3u, exprF->expressions.size());
+	CHECK(3u == exprF->expressions.size());
 	decl_expr* decl = boost::get<decl_expr>(&exprF->expressions[0]);
-	EXPECT_TRUE(decl != nullptr);
+	REQUIRE(decl != nullptr);
 
-	EXPECT_EQ("i", decl->declName);
+	CHECK("i" == decl->declName);
 
 	const vector<tuple<string, string, string, string>> expectedNameVals = {
 		make_tuple("i", "1", "+", "2"),
@@ -166,96 +166,96 @@ TEST(ASTTest, FunctionMultiDeclAssign) {
 	for (auto& funcDecl : exprF->expressions) {
 		// Check declarations
 		decl_expr* decl = boost::get<decl_expr>(&funcDecl);
-		EXPECT_TRUE(decl != nullptr);
+		REQUIRE(decl != nullptr);
 
 		const auto expectedValues = expectedNameVals[index];
 
-		EXPECT_EQ(get<0>(expectedValues), decl->declName);
+		CHECK(get<0>(expectedValues) == decl->declName);
 
 		binary_op* opExpr = boost::get<binary_op>(&decl->val);
-		EXPECT_TRUE(opExpr != nullptr);
+		REQUIRE(opExpr != nullptr);
 
-		EXPECT_EQ(1u, opExpr->operation.size());
+		CHECK(1u == opExpr->operation.size());
 
 		string* lhsVal = boost::get<string>(&opExpr->lhs);
-		EXPECT_EQ(get<1>(expectedValues), *lhsVal);
+		CHECK(get<1>(expectedValues) == *lhsVal);
 
 		// Check decl value
-		EXPECT_EQ(get<2>(expectedValues), opExpr->operation[0].op);
+		CHECK(get<2>(expectedValues) == opExpr->operation[0].op);
 
 		string* rhsVal = boost::get<string>(&opExpr->operation[0].rhs);
-		EXPECT_EQ(get<3>(expectedValues), *rhsVal);
+		CHECK(get<3>(expectedValues) == *rhsVal);
 
 		index += 1;
 	}
 }
 
-TEST(ASTTest, FunctionReturn) {
+TEST_CASE("ASTTest_FunctionReturn") {
 	const auto testProgram =
 		"i32 main() {"
 		"  return 1;"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF != nullptr);
+	REQUIRE(exprF != nullptr);
 
-	ASSERT_EQ(1u, exprF->expressions.size());
+	REQUIRE(1u == exprF->expressions.size());
 
 	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
-	EXPECT_TRUE(exprR != nullptr);
+	REQUIRE(exprR != nullptr);
 
 	binary_op* exprRval = boost::get<binary_op>(&exprR->ret);
-	EXPECT_NE(nullptr, exprRval);
+	CHECK(exprRval);
 
 	string* exprRvalStr = boost::get<string>(&exprRval->lhs);
-	EXPECT_NE(nullptr, exprRvalStr);
-	EXPECT_EQ("1", *exprRvalStr);
+	CHECK(exprRvalStr);
+	CHECK("1" == *exprRvalStr);
 }
 
-TEST(ASTTest, FunctionReturnComplex) {
+TEST_CASE("ASTTest_FunctionReturnComplex") {
 	const auto testProgram =
 		"i32 main() {"
 		"  return a + b + c + 0 + 1 + d;"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF != nullptr);
+	REQUIRE(exprF != nullptr);
 
-	ASSERT_EQ(1u, exprF->expressions.size());
+	REQUIRE(1u == exprF->expressions.size());
 
 	return_expr* exprR = boost::get<return_expr>(&exprF->expressions[0]);
-	EXPECT_TRUE(exprR != nullptr);
+	REQUIRE(exprR != nullptr);
 }
 
-TEST(ASTTest, MultipleFunction) {
+TEST_CASE("ASTTest_MultipleFunction") {
 	const auto testProgram =
 		"i32 foo() {}"
 		"i32 main() {}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_EQ(2u, expr->children.size());
+	CHECK(2u == expr->children.size());
 
 	func_expr* exprF_foo = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF_foo != nullptr);
-	EXPECT_EQ("foo", exprF_foo->functionName);
+	REQUIRE(exprF_foo != nullptr);
+	CHECK("foo" == exprF_foo->functionName);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	EXPECT_TRUE(exprF_main != nullptr);
-	EXPECT_EQ("main", exprF_main->functionName);
+	REQUIRE(exprF_main != nullptr);
+	CHECK("main" == exprF_main->functionName);
 }
 
-TEST(ASTTest, MultipleComplexFunction) {
+TEST_CASE("ASTTest_MultipleComplexFunction") {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 0;"
@@ -271,40 +271,40 @@ TEST(ASTTest, MultipleComplexFunction) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_EQ(3u, expr->children.size());
+	CHECK(3u == expr->children.size());
 }
 
-TEST(ASTTest, FunctionArgs) {
+TEST_CASE("ASTTest_FunctionArgs") {
 	const auto testProgram =
 		"i32 main(i32 a, i32 b) {"
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_TRUE(expr != nullptr);
+	REQUIRE(expr != nullptr);
 
 	func_expr* exprF = boost::get<func_expr>(&expr->children[0]);
-	ASSERT_TRUE(exprF != nullptr);
+	REQUIRE(exprF != nullptr);
 
-	ASSERT_EQ(2u, exprF->args.size());
+	REQUIRE(2u == exprF->args.size());
 
 	auto* argDef1 = boost::get<def_expr>(&exprF->args[0]);
-	ASSERT_TRUE(argDef1 != nullptr);
-	ASSERT_EQ("a", argDef1->defName);
-	EXPECT_EQ("i32", argDef1->typeName);
+	REQUIRE(argDef1 != nullptr);
+	REQUIRE("a" == argDef1->defName);
+	CHECK("i32" == argDef1->typeName);
 
 	auto* argDef2 = boost::get<def_expr>(&exprF->args[1]);
-	ASSERT_TRUE(argDef2 != nullptr);
-	ASSERT_EQ("b", argDef2->defName);
-	EXPECT_EQ("i32", argDef2->typeName);
+	REQUIRE(argDef2 != nullptr);
+	REQUIRE("b" == argDef2->defName);
+	CHECK("i32" == argDef2->typeName);
 }
 
-TEST(ASTTest, FunctionCall) {
+TEST_CASE("ASTTest_FunctionCall") {
 	const auto testProgram =
 		"i32 foo() {}"
 		"i32 main() {"
@@ -312,26 +312,26 @@ TEST(ASTTest, FunctionCall) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_TRUE(expr != nullptr);
+	REQUIRE(expr != nullptr);
 
 	func_expr* exprF_foo = boost::get<func_expr>(&expr->children[0]);
-	EXPECT_TRUE(exprF_foo != nullptr);
+	REQUIRE(exprF_foo != nullptr);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	EXPECT_TRUE(exprF_main != nullptr);
-	EXPECT_EQ(1u, exprF_main->expressions.size());
+	REQUIRE(exprF_main != nullptr);
+	CHECK(1u == exprF_main->expressions.size());
 
 	call_expr* callExpr = boost::get<call_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(callExpr != nullptr);
+	REQUIRE(callExpr != nullptr);
 
-	EXPECT_EQ("foo", callExpr->funcName);
-	EXPECT_EQ(0u, callExpr->values.size());
+	CHECK("foo" == callExpr->funcName);
+	CHECK(0u == callExpr->values.size());
 }
 
-TEST(ASTTest, FunctionCallArgs) {
+TEST_CASE("ASTTest_FunctionCallArgs") {
 	const auto testProgram =
 		"i32 foo(i32 a) {"
 		"  return a;"
@@ -341,32 +341,32 @@ TEST(ASTTest, FunctionCallArgs) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_TRUE(expr != nullptr);
+	REQUIRE(expr != nullptr);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	EXPECT_TRUE(exprF_main != nullptr);
+	REQUIRE(exprF_main != nullptr);
 
 	return_expr* retExpr = boost::get<return_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(retExpr != nullptr);
+	REQUIRE(retExpr != nullptr);
 
 	call_expr* callExpr = boost::get<call_expr>(&retExpr->ret);
-	EXPECT_TRUE(callExpr != nullptr);
+	REQUIRE(callExpr != nullptr);
 
-	EXPECT_EQ("foo", callExpr->funcName);
-	EXPECT_EQ(1u, callExpr->values.size());
+	CHECK("foo" == callExpr->funcName);
+	CHECK(1u == callExpr->values.size());
 
 	binary_op* val = boost::get<binary_op>(&callExpr->values[0]);
-	EXPECT_TRUE(val != nullptr);
+	REQUIRE(val != nullptr);
 
 	string* strVal = boost::get<string>(&val->lhs);
-	EXPECT_TRUE(strVal != nullptr);
-	EXPECT_EQ("45", *strVal);
+	REQUIRE(strVal != nullptr);
+	CHECK("45" == *strVal);
 }
 
-TEST(ASTTest, FunctionCallArgsComplex) {
+TEST_CASE("ASTTest_FunctionCallArgsComplex") {
 	const auto testProgram =
 		"i32 bar(i32 a, i32 b) {}"
 		"i32 foo(i32 a) {"
@@ -377,39 +377,39 @@ TEST(ASTTest, FunctionCallArgsComplex) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_NE(nullptr, expr);
+	CHECK(expr);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	EXPECT_NE(nullptr, exprF_main);
+	CHECK(exprF_main);
 	
 	return_expr* exprR = boost::get<return_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprR != nullptr);
+	REQUIRE(exprR != nullptr);
 
 	call_expr* callExpr = boost::get<call_expr>(&exprR->ret);
-	EXPECT_TRUE(callExpr != nullptr);
+	REQUIRE(callExpr != nullptr);
 
-	EXPECT_EQ("bar", callExpr->funcName);
-	EXPECT_EQ(2u, callExpr->values.size());
+	CHECK("bar" == callExpr->funcName);
+	CHECK(2u == callExpr->values.size());
 
 	binary_op* val1 = boost::get<binary_op>(&callExpr->values[0]);
-	EXPECT_NE(nullptr, val1);
+	CHECK(val1);
 
 	string* val1Str = boost::get<string>(&val1->lhs);
-	EXPECT_NE(nullptr, val1Str);
-	EXPECT_EQ("a", *val1Str);
+	CHECK(val1Str);
+	CHECK("a" == *val1Str);
 
 	binary_op* val2 = boost::get<binary_op>(&callExpr->values[1]);
-	EXPECT_NE(nullptr, val2);
+	CHECK(val2);
 
 	string* val2Str = boost::get<string>(&val2->lhs);
-	EXPECT_NE(nullptr, val2Str);
-	EXPECT_EQ("5", *val2Str);
+	CHECK(val2Str);
+	CHECK("5" == *val2Str);
 }
 
-TEST(ASTTest, FunctionIfStmt) {
+TEST_CASE("ASTTest_FunctionIfStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (i < 4) {"
@@ -417,28 +417,28 @@ TEST(ASTTest, FunctionIfStmt) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
 
 	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprIf != nullptr);
+	REQUIRE(exprIf != nullptr);
 
 	// Check the condition
 	string* exprIfOpLhs = boost::get<string>(&exprIf->condition.lhs);
-	EXPECT_TRUE(exprIfOpLhs != nullptr);
-	EXPECT_EQ("i", *exprIfOpLhs);
+	REQUIRE(exprIfOpLhs != nullptr);
+	CHECK("i" == *exprIfOpLhs);
 
-	EXPECT_EQ(1u, exprIf->condition.operation.size());
-	EXPECT_EQ("<", exprIf->condition.operation[0].op);
+	CHECK(1u == exprIf->condition.operation.size());
+	CHECK("<" == exprIf->condition.operation[0].op);
 
 	string* exprIfOpRhs = boost::get<string>(&exprIf->condition.operation[0].rhs);
-	EXPECT_TRUE(exprIfOpRhs != nullptr);
-	EXPECT_EQ("4", *exprIfOpRhs);
+	REQUIRE(exprIfOpRhs != nullptr);
+	CHECK("4" == *exprIfOpRhs);
 }
 
-TEST(ASTTest, FunctionIfElseStmt) {
+TEST_CASE("ASTTest_FunctionIfElseStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (i < 4) {"
@@ -449,19 +449,19 @@ TEST(ASTTest, FunctionIfElseStmt) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
 
 	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprIf != nullptr);
+	REQUIRE(exprIf != nullptr);
 
-	EXPECT_EQ(1u, exprIf->thenBranch.size());
-	EXPECT_EQ(1u, exprIf->elseBranch.size());
+	CHECK(1u == exprIf->thenBranch.size());
+	CHECK(1u == exprIf->elseBranch.size());
 }
 
-TEST(ASTTest, Assignment) {
+TEST_CASE("ASTTest_Assignment") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -469,35 +469,35 @@ TEST(ASTTest, Assignment) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
 
 	// Check the assignment 
-	ASSERT_EQ(2u, exprF_main->expressions.size());
+	REQUIRE(2u == exprF_main->expressions.size());
 
 	var_assign* varAssign = boost::get<var_assign>(&exprF_main->expressions[1]);
-	ASSERT_TRUE(varAssign != nullptr);
+	REQUIRE(varAssign != nullptr);
 
-	EXPECT_EQ("a", varAssign->varName);
+	CHECK("a" == varAssign->varName);
 	
 	binary_op* exprRhs = boost::get<binary_op>(&varAssign->varRhs);
-	EXPECT_TRUE(exprRhs != nullptr);
+	REQUIRE(exprRhs != nullptr);
 
 	string* exprRhs_Lhs = boost::get<string>(&exprRhs->lhs);
-	EXPECT_TRUE(exprRhs_Lhs != nullptr);
-	EXPECT_EQ("a", *exprRhs_Lhs);
+	REQUIRE(exprRhs_Lhs != nullptr);
+	CHECK("a" == *exprRhs_Lhs);
 
-	EXPECT_EQ(1u, exprRhs->operation.size());
-	EXPECT_EQ("+", exprRhs->operation[0].op);
+	CHECK(1u == exprRhs->operation.size());
+	CHECK("+" == exprRhs->operation[0].op);
 
 	string* exprRhs_Rhs = boost::get<string>(&exprRhs->operation[0].rhs);
-	EXPECT_TRUE(exprRhs_Rhs != nullptr);
-	EXPECT_EQ("1", *exprRhs_Rhs);
+	REQUIRE(exprRhs_Rhs != nullptr);
+	CHECK("1" == *exprRhs_Rhs);
 }
 
-TEST(ASTTest, WhileStmt) {
+TEST_CASE("ASTTest_WhileStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  while (i < 4) {"
@@ -505,28 +505,28 @@ TEST(ASTTest, WhileStmt) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
 
 	while_loop* exprLoop = boost::get<while_loop>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprLoop != nullptr);
+	REQUIRE(exprLoop != nullptr);
 
 	// Check the condition
 	string* exprLoopOpLhs = boost::get<string>(&exprLoop->condition.lhs);
-	EXPECT_NE(nullptr, exprLoopOpLhs);
-	EXPECT_EQ("i", *exprLoopOpLhs);
+	CHECK(exprLoopOpLhs);
+	CHECK("i" == *exprLoopOpLhs);
 
-	EXPECT_EQ(1u, exprLoop->condition.operation.size());
-	EXPECT_EQ("<", exprLoop->condition.operation[0].op);
+	CHECK(1u == exprLoop->condition.operation.size());
+	CHECK("<" == exprLoop->condition.operation[0].op);
 
 	string* exprLoopOpRhs = boost::get<string>(&exprLoop->condition.operation[0].rhs);
-	EXPECT_TRUE(exprLoopOpRhs != nullptr);
-	EXPECT_EQ("4", *exprLoopOpRhs);
+	REQUIRE(exprLoopOpRhs != nullptr);
+	CHECK("4" == *exprLoopOpRhs);
 }
 
-TEST(ASTTest, FuncCallInIfStmt) {
+TEST_CASE("ASTTest_FuncCallInIfStmt") {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"  return 0;"
@@ -539,22 +539,22 @@ TEST(ASTTest, FuncCallInIfStmt) {
 		"}";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	EXPECT_NE(nullptr, expr);
+	CHECK(expr);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[1]);
-	EXPECT_NE(nullptr, exprF_main);
+	CHECK(exprF_main);
 	
 	if_expr* exprIf = boost::get<if_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprIf != nullptr);
+	REQUIRE(exprIf != nullptr);
 
 	call_expr* callExpr = boost::get<call_expr>(&exprIf->condition.lhs);
-	EXPECT_NE(nullptr, callExpr);
+	CHECK(callExpr);
 }
 
-TEST(ASTTest, DuplicateDefinition) {
+TEST_CASE("ASTTest_DuplicateDefinition") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		  i32 a;
@@ -564,21 +564,21 @@ TEST(ASTTest, DuplicateDefinition) {
 		)mrk";
 
 	base_expr_node root;
-	ASSERT_TRUE(parse(testProgram, root));
+	REQUIRE(parse(testProgram, root));
 
 	base_expr* expr = boost::get<base_expr>(&root);
-	ASSERT_NE(nullptr, expr);
+	REQUIRE(expr);
 
 	func_expr* exprF_main = boost::get<func_expr>(&expr->children[0]);
-	ASSERT_NE(nullptr, exprF_main);
+	REQUIRE(exprF_main);
 
-	ASSERT_EQ(3u, exprF_main->expressions.size());
+	REQUIRE(3u == exprF_main->expressions.size());
 
 	// First expression should be available, the second should not be	
 	auto* exprDef = boost::get<def_expr>(&exprF_main->expressions[0]);
-	EXPECT_TRUE(exprDef != nullptr);
+	REQUIRE(exprDef != nullptr);
 
 	auto* exprDef2 = boost::get<def_expr>(&exprF_main->expressions[1]);
-	EXPECT_TRUE(exprDef2 != nullptr);
+	REQUIRE(exprDef2 != nullptr);
 }
 

@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "catch.hpp"
 
 #include <sys/wait.h>
 
@@ -69,7 +69,7 @@ namespace {
 	}
 
 
-	class DriverTest : public ::testing::Test {
+	class DriverTestFixture {
 	public:
 		void TearDown() {
 			cleanupFiles();
@@ -78,7 +78,7 @@ namespace {
 
 }
 
-TEST_F(DriverTest, BasicFunction) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_BasicFunction") {
 	const auto testProgram =
 		"i32 main() {"
 		"  return 3;"
@@ -91,24 +91,24 @@ TEST_F(DriverTest, BasicFunction) {
 	} BOOST_SCOPE_EXIT_END
 	*/
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(3, runExecutable(g_outputExe));
+	CHECK(3 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionSingleDecl) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionSingleDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
 		"  return i;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionMultiDecl) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionMultiDecl") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -116,12 +116,12 @@ TEST_F(DriverTest, FunctionMultiDecl) {
 		"  return j;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(5, runExecutable(g_outputExe));
+	CHECK(5 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionMultiDeclSum) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionMultiDeclSum") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -129,12 +129,12 @@ TEST_F(DriverTest, FunctionMultiDeclSum) {
 		"  return i + j;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(7, runExecutable(g_outputExe));
+	CHECK(7 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionMultiDeclSumComplex) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionMultiDeclSumComplex") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 2;"
@@ -142,13 +142,13 @@ TEST_F(DriverTest, FunctionMultiDeclSumComplex) {
 		"  return i + j + 6;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(13, runExecutable(g_outputExe));
+	CHECK(13 == runExecutable(g_outputExe));
 }
 
 // Tests scoping rules of multiple functions with identical variable names
-TEST_F(DriverTest, MultipleFunction) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_MultipleFunction") {
 	const auto testProgram =
 		"i32 bar() {"
 		"  i32 a = 5;"
@@ -163,25 +163,25 @@ TEST_F(DriverTest, MultipleFunction) {
 		"  return a;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(3, runExecutable(g_outputExe));
+	CHECK(3 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionUseArgs) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionUseArgs") {
 	const auto testProgram =
 		"i32 main(i32 a) {"
 		"  return a;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
-	EXPECT_EQ(2, runExecutable(g_outputExe + " arg1"));
-	EXPECT_EQ(3, runExecutable(g_outputExe + " arg1 arg2"));
+	CHECK(1 == runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe + " arg1"));
+	CHECK(3 == runExecutable(g_outputExe + " arg1 arg2"));
 }
 
-TEST_F(DriverTest, FunctionCall) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionCall") {
 	const auto testProgram =
 		"i32 foo(i32 a) {"
 		"  return a + 1;"
@@ -190,14 +190,14 @@ TEST_F(DriverTest, FunctionCall) {
 		"  return foo(a);"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
-	EXPECT_EQ(3, runExecutable(g_outputExe + " arg1"));
-	EXPECT_EQ(4, runExecutable(g_outputExe + " arg1 arg2"));
+	CHECK(2 == runExecutable(g_outputExe));
+	CHECK(3 == runExecutable(g_outputExe + " arg1"));
+	CHECK(4 == runExecutable(g_outputExe + " arg1 arg2"));
 }
 
-TEST_F(DriverTest, FunctionIfStmtReturnSimple) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionIfStmtReturnSimple") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 < 4) {"
@@ -206,12 +206,12 @@ TEST_F(DriverTest, FunctionIfStmtReturnSimple) {
 		"  return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionIfStmtReturn) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionIfStmtReturn") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -222,12 +222,12 @@ TEST_F(DriverTest, FunctionIfStmtReturn) {
 		"  return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FunctionIfElseStmtReturn) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FunctionIfElseStmtReturn") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 3;"
@@ -240,12 +240,12 @@ TEST_F(DriverTest, FunctionIfElseStmtReturn) {
 		"  return 2;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(0, runExecutable(g_outputExe));
+	CHECK(0 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, OperatorLessThan) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_OperatorLessThan") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 < 4) {"
@@ -254,12 +254,12 @@ TEST_F(DriverTest, OperatorLessThan) {
 		"  return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, OperatorGreaterThan) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_OperatorGreaterThan") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (3 > 4) {"
@@ -268,12 +268,12 @@ TEST_F(DriverTest, OperatorGreaterThan) {
 		"  return 2;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, OperatorEqual) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_OperatorEqual") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (4 == 4) {"
@@ -282,12 +282,12 @@ TEST_F(DriverTest, OperatorEqual) {
 		"  return 2;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, OperatorModulo) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_OperatorModulo") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 5 % 3;"
@@ -297,12 +297,12 @@ TEST_F(DriverTest, OperatorModulo) {
 		"  return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, WhileStmt) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_WhileStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 2;"
@@ -313,12 +313,12 @@ TEST_F(DriverTest, WhileStmt) {
 		"  return a;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(6, runExecutable(g_outputExe));
+	CHECK(6 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, LogicalOR) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_LogicalOR") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -329,12 +329,12 @@ TEST_F(DriverTest, LogicalOR) {
 		"  return 1;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, LogicalAND) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_LogicalAND") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 a = 0;"
@@ -345,48 +345,48 @@ TEST_F(DriverTest, LogicalAND) {
 		"  return 1;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, Division) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_Division") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 / 3;"
 		"  return i;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, Subtraction) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_Subtraction") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 - 3;"
 		"  return i;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, Multiplication) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_Multiplication") {
 	const auto testProgram =
 		"i32 main() {"
 		"  i32 i = 5 * 3;"
 		"  return i;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(15, runExecutable(g_outputExe));
+	CHECK(15 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, MultiMethods) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_MultiMethods") {
 	const auto testProgram =
 		"i32 a() {"
 		"  return 1;"
@@ -396,12 +396,12 @@ TEST_F(DriverTest, MultiMethods) {
 		"  return i;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(15, runExecutable(g_outputExe));
+	CHECK(15 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FuncCallInIfStmt) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FuncCallInIfStmt") {
 	const auto testProgram =
 		"i32 func1(i32 a) {"
 		"	return a + 5;"
@@ -413,12 +413,12 @@ TEST_F(DriverTest, FuncCallInIfStmt) {
 		"   return func1(10);"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(15, runExecutable(g_outputExe));
+	CHECK(15 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, IfWith2ReturnStmt) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_IfWith2ReturnStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"  if (1 == 1) {"
@@ -431,12 +431,12 @@ TEST_F(DriverTest, IfWith2ReturnStmt) {
 		"  return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, WhileWithReturnStmt) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_WhileWithReturnStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"	while (1 == 1) {"
@@ -445,12 +445,12 @@ TEST_F(DriverTest, WhileWithReturnStmt) {
 		"   return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(1, runExecutable(g_outputExe));
+	CHECK(1 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FuncWithEarlyReturnStmt) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FuncWithEarlyReturnStmt") {
 	const auto testProgram =
 		"i32 main() {"
 		"	return 2;"
@@ -460,12 +460,12 @@ TEST_F(DriverTest, FuncWithEarlyReturnStmt) {
 		"   return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(2, runExecutable(g_outputExe));
+	CHECK(2 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, MultipleChainedFunctionCall) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_MultipleChainedFunctionCall") {
 	const auto testProgram =
 		"i32 unaryFunc(i32 n) {"
 		"  return n + 1;"
@@ -477,26 +477,26 @@ TEST_F(DriverTest, MultipleChainedFunctionCall) {
 		"  return binaryFunc(1, 5);"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(27, runExecutable(g_outputExe));
+	CHECK(27 == runExecutable(g_outputExe));
 }
 
-TEST_F(DriverTest, FuncWithPrintf) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_FuncWithPrintf") {
 	const auto testProgram =
 		"i32 main() {"
 		"   printf(\"test\");"
 		"   return 0;"
 		"}";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(0, runExecutable(g_outputExe));
+	CHECK(0 == runExecutable(g_outputExe));
 
-	EXPECT_EQ("test", stdoutContents());
+	CHECK("test" == stdoutContents());
 }
 
-TEST_F(DriverTest, PrintfEscapeChars) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_PrintfEscapeChars") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test\n");
@@ -504,14 +504,14 @@ TEST_F(DriverTest, PrintfEscapeChars) {
 		}
 		)mrk";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(0, runExecutable(g_outputExe));
+	CHECK(0 == runExecutable(g_outputExe));
 
-	EXPECT_EQ("test\n", stdoutContents());
+	CHECK("test\n" == stdoutContents());
 }
 
-TEST_F(DriverTest, PrintfMultiArg) {
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_PrintfMultiArg") {
 	const auto testProgram = R"mrk(
 		i32 main() {
 		   printf("test: %s %d\n", "hello world", 32);
@@ -519,10 +519,10 @@ TEST_F(DriverTest, PrintfMultiArg) {
 		}
 		)mrk";
 
-	ASSERT_TRUE(createExe(testProgram));
+	REQUIRE(createExe(testProgram));
 
-	EXPECT_EQ(0, runExecutable(g_outputExe));
+	CHECK(0 == runExecutable(g_outputExe));
 
-	EXPECT_EQ("test: hello world 32\n", stdoutContents());
+	CHECK("test: hello world 32\n" == stdoutContents());
 }
 
