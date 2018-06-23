@@ -11,8 +11,6 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install libboost-dev g++-4.9 llvm-6.0-dev
 
-install: cmake make
-
 script:
   - mkdir build
   - cmake ./build
