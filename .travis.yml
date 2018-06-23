@@ -5,10 +5,8 @@ language: cpp
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-add-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main"
   - sudo apt-get update
-  - sudo apt-get install libboost-dev 
-  - sudo apt-get install g++-4.9
-
-  - deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main
+  - sudo apt-get install libboost-dev g++-4.9 llvm-6.0-dev
 
 script: pushd build && make
