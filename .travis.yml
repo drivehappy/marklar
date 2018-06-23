@@ -9,8 +9,6 @@ before_install:
   - sudo apt-get install libboost-dev 
   - sudo apt-get install g++-4.9
 
-  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key
-  - sudo apt-key add -
-  - sudo apt-get install llvm-3.5-dev
+  - deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main
 
 script: pushd build && make
