@@ -526,3 +526,22 @@ TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_PrintfMultiArg") {
 	CHECK("test: hello world 32\n" == stdoutContents());
 }
 
+TEST_CASE_METHOD(DriverTestFixture, "DriverTestFixture_PrintfMultiFunc") {
+	const auto testProgram = R"mrk(
+		i32 work() {
+		   printf("%d\n", 1);
+		   return 0;
+		}
+		i32 main() {
+		   printf("test: %s %d\n", "hello world", 32);
+		   return 0;
+		}
+		)mrk";
+
+	REQUIRE(createExe(testProgram));
+
+	CHECK(0 == runExecutable(g_outputExe));
+
+	CHECK("test: hello world 32\n" == stdoutContents());
+}
+

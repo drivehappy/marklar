@@ -11,6 +11,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/TypeBuilder.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
@@ -104,27 +105,10 @@ namespace {
 	}
 
 	// Helper functions for printf
-	FunctionType* printf_type(LLVMContext& ctx, const vector<Value*>& args) {
-		vector<Type*> printf_arg_types;
-		for (const auto& arg : args) {
-			printf_arg_types.push_back(arg->getType());
-		}
-
-		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
-		return printf_type;
-	}
-
 	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
-		FunctionType* t = printf_type(ctx, args);
-		string name = "printf";
-		Function* f;
+		FunctionType* type = TypeBuilder<int(char *, ...), false>::get(ctx);
 
-		// Build new printf function as long as we have the same name and the function types don't match
-		while ((f = mod->getFunction(name)) && (f->getFunctionType() != t)) {
-			name += "1";
-		}
-
-		Function *func = cast<Function>(mod->getOrInsertFunction(name, t,
+		Function *func = cast<Function>(mod->getOrInsertFunction("printf", t,
 				AttributeList().addAttribute(mod->getContext(), 1u, Attribute::NoAlias)));
 
 		return func;
@@ -499,7 +483,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 		if (callFuncName == "printf") {
 			// Check if the existing definition works for our call, this might be varargs
 			// which causes definitions to differ, e.g. printf("a") vs printf("a %d", 1);
-			FunctionType* expectedType = printf_type(*m_context, ArgsV);
+			FunctionType* expectedType = printf_type(*m_context);
 			if (expectedType != calleeF->getFunctionType()) {
 				/* The printf_prototype hacks around this by building new functions currently
 				string typeInfo1;
@@ -530,12 +514,6 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 			}
 		}
 		// --
-	}
-
-	// Check that the number of arguments match with what we expect on the function
-	if (calleeF->arg_size() != expr.values.size()) {
-		cerr << "Error: Function call expected " << calleeF->arg_size() << " arguments, but got " << expr.values.size() << endl;
-		return nullptr;
 	}
 
 	CallInst *callInst = m_builder.CreateCall(calleeF, ArgsV, callFuncName);
