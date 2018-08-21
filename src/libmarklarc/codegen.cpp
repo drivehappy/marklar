@@ -105,8 +105,24 @@ namespace {
 	}
 
 	// Helper functions for printf
+	/*
+	FunctionType* printf_type(LLVMContext& ctx, const vector<Value*>& args) {
+		vector<Type*> printf_arg_types;
+		for (const auto& arg : args) {
+			printf_arg_types.push_back(arg->getType());
+		}
+
+		FunctionType *printf_type = FunctionType::get(Type::getInt32Ty(ctx), printf_arg_types, true);
+		return printf_type;
+	}
+	*/
+
+	FunctionType* printf_type(LLVMContext& ctx) {
+		return TypeBuilder<int(char *, ...), false>::get(ctx);
+	}
+
 	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
-		FunctionType* type = TypeBuilder<int(char *, ...), false>::get(ctx);
+		FunctionType* t = printf_type(ctx);
 
 		Function *func = cast<Function>(mod->getOrInsertFunction("printf", t,
 				AttributeList().addAttribute(mod->getContext(), 1u, Attribute::NoAlias)));
@@ -483,6 +499,7 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 		if (callFuncName == "printf") {
 			// Check if the existing definition works for our call, this might be varargs
 			// which causes definitions to differ, e.g. printf("a") vs printf("a %d", 1);
+			//FunctionType* expectedType = printf_type(*m_context, ArgsV);
 			FunctionType* expectedType = printf_type(*m_context);
 			if (expectedType != calleeF->getFunctionType()) {
 				/* The printf_prototype hacks around this by building new functions currently
