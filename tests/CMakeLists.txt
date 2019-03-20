@@ -8,7 +8,7 @@ link_directories ("~/dev/llvm-build/lib")
 include_directories (/usr/include/llvm-7/ /usr/include/llvm-c-7/)
 include_directories ("${PROJECT_SOURCE_DIR}/src/libmarklarc")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 file(GLOB libmarklarc_TESTS
 	"*.cpp"
