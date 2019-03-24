@@ -7,7 +7,7 @@ file(GLOB libmarklarc_SRC
 
 add_library(libmarklarc ${libmarklarc_SRC})
 
-# '/usr/lib/llvm-7/lib' is the output of 'llvm-config --ldflags', find a way to run this automatically
-include_directories (/usr/include/llvm-7/ /usr/include/llvm-c-7/)
-target_link_libraries (libmarklarc -L/usr/lib/llvm-7/lib -lLLVM-7)
+# '/usr/lib/llvm-8/lib' is the output of 'llvm-config --ldflags', find a way to run this automatically
+include_directories (/usr/include/llvm-8/ /usr/include/llvm-c-8/)
+target_link_libraries (libmarklarc -L/usr/lib/llvm-8/lib -lLLVM-8)
 

@@ -11,7 +11,8 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/TypeBuilder.h>
+//#include <llvm/IR/TypeBuilder.h>
+#include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
@@ -118,7 +119,11 @@ namespace {
 	*/
 
 	FunctionType* printf_type(LLVMContext& ctx) {
-		return TypeBuilder<int(char *, ...), false>::get(ctx);
+		return
+			FunctionType::get(
+				Type::getInt32Ty(ctx),
+				{ Type::getInt8PtrTy(ctx) },
+				true);
 	}
 
 	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
