@@ -129,8 +129,8 @@ namespace {
 	Function* printf_prototype(LLVMContext& ctx, Module* mod, const vector<Value*>& args) {
 		FunctionType* t = printf_type(ctx);
 
-		Function *func = cast<Function>(mod->getOrInsertFunction("printf", t,
-				AttributeList().addAttribute(mod->getContext(), 1u, Attribute::NoAlias)));
+		FunctionCallee callee = mod->getOrInsertFunction("printf", t, AttributeList().addAttribute(mod->getContext(), 1u, Attribute::NoAlias));
+		Function *func = cast<Function>(callee.getCallee());
 
 		return func;
 	}
