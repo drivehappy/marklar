@@ -178,22 +178,6 @@ Value* ast_codegen::operator()(const string& val) {
 		if (isQuotedString(val)) {
 			// This is a string in quotes and is only seen once, therefore build a constant for it
 			const auto rawString = convertEscapedCharacters(trimQuotes(val));
-			//retVal = ConstantDataArray::getString(*m_context, rawString);
-			/*
-			auto* format_const = ConstantDataArray::getString(*m_context, rawString);
-			GlobalVariable* var = new GlobalVariable(
-				*m_module,
-				ArrayType::get(IntegerType::get(*m_context, 8), 4),
-				true,
-				GlobalValue::PrivateLinkage,
-				format_const,
-				".str");
-
-			Constant* zero = Constant::getNullValue(IntegerType::getInt32Ty(*m_context));
-			//vector<Constant*> indices = { zero, zero };
-			Constant* varRef = ConstantExpr::getGetElementPtr(var, zero);
-			retVal = varRef;
-			*/
 
 			retVal = geti8StrVal(*m_context, *m_module, rawString.c_str(), ".str");
 		} else {
@@ -275,7 +259,6 @@ Value* ast_codegen::operator()(const parser::func_expr& func) {
 		auto* arg = boost::get<def_expr>(&argDef);
 		assert(arg);
 
-		//const string argName = string(F->getName()) + "_" + arg->defName;
 		const string argName = arg->defName;
 
 		argItr->setName(argName);
@@ -354,7 +337,6 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
 
-	//const string declName = string(TheFunction->getName()) + "_" + decl.declName;
 	const string declName = decl.declName;
 
 	map<string, Value*>::const_iterator itr = m_symbolTable.find(declName);
@@ -377,22 +359,6 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 			Alloca = TmpB.CreateAlloca(type, nullptr, declName.c_str());
 
 			m_symbolTable[declName] = Alloca;
-		} else {
-			/* Don't think this is needed anymore
-
-			// Check if the function was already declared, if not then build it
-			auto itr = m_symbolTable.find(declName);
-			if (itr == m_symbolTable.end()) {
-				// Assume for now this has no arguments
-				vector<Type*> args(0, Type::getInt32Ty(*m_context));
-
-				FunctionType *FT = FunctionType::get(Type::getInt32Ty(*m_context), args, false);
-				Function *F = Function::Create(FT, Function::ExternalLinkage, declName, m_module);
-
-				// Add this function to the symbol table
-				m_symbolTable[declName] = F;
-			}
-			*/
 		}
 
 		var = Alloca;
@@ -435,8 +401,6 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 	assert(retVal);
 
 	Value* v = boost::apply_visitor(*this, exprRet.ret);
-	//assert(v);
-
 	if (!v) {
 		return nullptr;
 	}
@@ -485,20 +449,6 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 			//FunctionType* expectedType = printf_type(*m_context, ArgsV);
 			FunctionType* expectedType = printf_type(*m_context);
 			if (expectedType != calleeF->getFunctionType()) {
-				/* The printf_prototype hacks around this by building new functions currently
-				string typeInfo1;
-				raw_string_ostream expectedTypeStr(typeInfo1);
-				string typeInfo2;
-				raw_string_ostream actualTypeStr(typeInfo2);
-
-				expectedType->print(expectedTypeStr);
-				calleeF->getFunctionType()->print(actualTypeStr);
-
-				cerr << "Error: Type mismatch when attempting to call '" << callFuncName << "':" << endl;
-				cerr << "       Expected:  " << expectedTypeStr.str() << endl;
-				cerr << "       Attempted: " << actualTypeStr.str() << endl;
-				*/
-
 				calleeF = printf_prototype(*m_context, m_module, ArgsV);
 			}
 		}
@@ -718,7 +668,6 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 Value* ast_codegen::operator()(const parser::var_assign& assign) {
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
-	//const string varName = string(TheFunction->getName()) + "_" + assign.varName;
 	const string varName = assign.varName;
 
 	Value* const rhsVal = boost::apply_visitor(*this, assign.varRhs);
