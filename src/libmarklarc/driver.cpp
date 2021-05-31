@@ -27,7 +27,6 @@ namespace marklar {
 
 		bool generateOutput(const string& fileContents, const string& outputBitCodeName) {
 			// Parse the source file
-			//cout << "Parsing..." << endl;
 			base_expr_node rootAst;
 			if (!parse(fileContents, rootAst)) {
 				cerr << "Failed to parse source file!" << endl;
@@ -35,7 +34,6 @@ namespace marklar {
 			}
 
 			// Generate the code
-			//cout << "Generating code..." << endl;
 			LLVMContext context;
 			unique_ptr<Module> module(new Module("", context));
 			IRBuilder<> builder(context);
@@ -74,8 +72,6 @@ namespace marklar {
 
 			// Optimize the generated bitcode with LLVM 'opt', produces an optimized bitcode file
 			{
-				//cout << "Optimizing..." << endl;
-
 				const string optCmd = "opt -filetype=obj -o " + tmpOptBCName + " -O3 -loop-unroll -loop-vectorize -slp-vectorizer output.bc";
 
 				const int retval = system(optCmd.c_str());
@@ -87,8 +83,6 @@ namespace marklar {
 
 			// Transform the bitcode into an object file with LLVM 'llc'
 			{
-				//cout << "Linking..." << endl;
-
 				const string llcCmd = "llc -relocation-model=pic -filetype=obj -o " + tmpObjName + " " + tmpOptBCName;
 
 				const int retval = system(llcCmd.c_str());
@@ -101,8 +95,6 @@ namespace marklar {
 			// Leverage gcc here to link the object file into the final executable
 			// this is mainly to bypass the more complicated options that the system 'ld' needs
 			{
-				//cout << "Building executable..." << endl;
-
 				const string outputExeName = (exeName.empty() ? "a.out" : exeName);
 				const string gccCmd = "gcc -o " + outputExeName + " " + tmpObjName;
 				

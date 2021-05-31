@@ -20,6 +20,7 @@ namespace parser {
 	struct var_assign;
 	struct udf_type;
 
+	// Represents the "generic" node type that carries information about any of the following types.
 	typedef boost::variant<
 		boost::recursive_wrapper<base_expr>,
 		boost::recursive_wrapper<func_expr>,
@@ -108,9 +109,10 @@ namespace parser {
 
 namespace marklar {
 
-	bool parse(const std::string& str);
-
+	// Main parse routine, upon successfully parsing the str argument will return the AST in root
 	bool parse(const std::string& str, parser::base_expr_node& root);
+
+	bool parse(const std::string& str);
 
 }
 

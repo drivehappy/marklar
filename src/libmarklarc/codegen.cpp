@@ -150,8 +150,6 @@ namespace {
 
 
 Value* ast_codegen::operator()(const string& val) {
-	//cerr << "Generating code for string \"" << val << "\"" << endl;
-
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
 	//const string varName = string(TheFunction->getName()) + "_" + val;
@@ -214,22 +212,12 @@ Value* ast_codegen::operator()(const string& val) {
 }
 
 Value* ast_codegen::operator()(const parser::base_expr& expr) {
-	//cerr << "Generating code for base_expr, children size = \"" << expr.children.size() << "\"" << endl;
-
-	//assert(expr);
-
-	/*
-	for (base_expr_node& itr : expr->children) {
-		boost::apply_visitor(ast_codegen(m_module, m_builder), &itr));
-	}
-	*/
+	// Unexpected base case
 
 	return nullptr;
 }
 
 Value* ast_codegen::operator()(const parser::func_expr& func) {
-	//cerr << "Generating code for Function \"" << func.functionName << "\"" << endl;
-
 	Function *F = nullptr;
 	Type* returnType = convertMarklarTypeToLLVM(*m_context, func.returnType);
 
@@ -361,8 +349,6 @@ Value* ast_codegen::operator()(const parser::def_expr& def) {
 }
 
 Value* ast_codegen::operator()(const parser::decl_expr& decl) {
-	//cerr << "Generating code for declaration \"" << decl.declName << "\"" << endl;
-
 	Value* var = nullptr;
 
 	BasicBlock *bb = m_builder.GetInsertBlock();
@@ -380,8 +366,6 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 	}
 
 	{
-		//cerr << "  Variable referenced for first time: " << decl.declName << endl;
-
 		AllocaInst *Alloca = nullptr;
 
 		// If there is no basic block it indicates it might be at the global-level
@@ -439,14 +423,10 @@ Value* ast_codegen::operator()(const parser::decl_expr& decl) {
 }
 
 Value* ast_codegen::operator()(const parser::operator_expr& expr) {
-	//cerr << "Generating code for operator" << endl;
-
 	return nullptr;
 }
 
 Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
-	//cerr << "Generating code for return:" << endl;
-	
 	// We can't generate a CreateRet in-place here since it might be
 	// within an if-else, LLVM doesn't allow terminators in the branches
 	// Therefore, just reference the return value on the stack we setup
@@ -480,8 +460,6 @@ Value* ast_codegen::operator()(const parser::return_expr& exprRet) {
 }
 
 Value* ast_codegen::operator()(const parser::call_expr& expr) {
-	//cerr << "Generating code for call_expr:" << endl;
-
 	// Build the arguments first, in case this is a vararg we need to know these types
 	std::vector<Value*> ArgsV;
 	for (auto& exprArg : expr.values) {
@@ -545,8 +523,6 @@ Value* ast_codegen::operator()(const parser::call_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::if_expr& expr) {
-	//cerr << "Generating code for ifExpr:" << endl;
-
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 	assert(TheFunction);
 
@@ -636,8 +612,6 @@ Value* ast_codegen::operator()(const parser::if_expr& expr) {
 }
 
 Value* ast_codegen::operator()(const parser::binary_op& op) {
-	//cerr << "Generating code for binary_op:" << endl;
-
 	typedef Value* (IRBuilder<>::*logical_t)(Value*, Value*, const Twine&);
 	typedef Value* (IRBuilder<>::*shiftRight_t)(Value*, Value*, const Twine&, bool);
 	typedef Value* (IRBuilder<>::*shiftLeft_t)(Value*, Value*, const Twine&, bool, bool);
@@ -687,21 +661,6 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 		}
 
 		if (varLhs->getType() != varRhs->getType()) {
-			#if 0
-			string typeInfo1;
-			raw_string_ostream typeInfoOut1(typeInfo1);
-			string typeInfo2;
-			raw_string_ostream typeInfoOut2(typeInfo2);
-
-			varLhs->getType()->print(typeInfoOut1);
-			varRhs->getType()->print(typeInfoOut2);
-
-			cerr << "Types don't match (operator '" << itr.op << "'): "
-			     << typeInfoOut1.str() << " ('" << varLhs->getName().str() << "') != "
-			     << typeInfoOut2.str() << " ('" << varRhs->getName().str() << "')"
-			     << endl;
-			#endif
-
 			// Cast (zero-extend)
 			varRhs = castInt(varLhs, varRhs, m_builder);
 		}
@@ -714,8 +673,6 @@ Value* ast_codegen::operator()(const parser::binary_op& op) {
 }
 
 Value* ast_codegen::operator()(const parser::while_loop& loop) {
-	//cerr << "Generating code for while loop" << endl;
-
 	Function *TheFunction = m_builder.GetInsertBlock()->getParent();
 
 	BasicBlock *LoopBB = BasicBlock::Create(*m_context, "while.body");
@@ -759,8 +716,6 @@ Value* ast_codegen::operator()(const parser::while_loop& loop) {
 }
 
 Value* ast_codegen::operator()(const parser::var_assign& assign) {
-	//cerr << "Generating code for variable assignment of \"" << assign.varName << "\"" << endl;
-
 	BasicBlock *bb = m_builder.GetInsertBlock();
 	Function *TheFunction = bb->getParent();
 	//const string varName = string(TheFunction->getName()) + "_" + assign.varName;
@@ -773,21 +728,6 @@ Value* ast_codegen::operator()(const parser::var_assign& assign) {
 		cerr << "Unknown variable assignment: '" << assign.varName << "'" << endl;
 		return nullptr;
 	}
-
-	/*
-	if (rhsVal->getType()->isPointerTy()) {
-		Value* varLhs = m_builder.CreateLoad(rhsVal);
-
-		return m_builder.CreateStore(varLhs, itr->second);
-	}
-	
-	// Testing
-	if (itr->second->getType()->getIntegerBitWidth() > rhsVal->getType()->getIntegerBitWidth()) {
-		CastInst* zeroExtendRHS = new ZExtInst(rhsVal, Type::getInt64Ty(*m_context), "conv", m_builder.GetInsertBlock());
-		return m_builder.CreateStore(zeroExtendRHS, itr->second);
-	}
-	// --
-	*/
 
 	return m_builder.CreateStore(rhsVal, itr->second);
 }

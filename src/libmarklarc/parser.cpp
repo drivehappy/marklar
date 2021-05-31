@@ -17,6 +17,8 @@ using namespace std;
 namespace x3 = boost::spirit::x3;
 
 
+// The following Boost Fusion macros tie the custom structs of ours to the Boost X3 parser types.
+
 BOOST_FUSION_ADAPT_STRUCT(
 	parser::operation,
 	(std::string, op)
@@ -115,6 +117,7 @@ namespace parser {
 		BOOST_SPIRIT_DEFINE(startSkip);
 	}
 
+	// Grammar and parser for the Marklar language.
 	namespace marklar {
 		// Rules decls
 		#define BUILD_RULE(name, type) const x3::rule<class name, type> name = "name"
@@ -130,7 +133,6 @@ namespace parser {
 		BUILD_RULE(callExpr, call_expr);
 		BUILD_RULE(ifExpr, if_expr);
 		BUILD_RULE(whileLoop, while_loop);
-
 		BUILD_RULE(varName, std::string);
 		BUILD_RULE(varDef, def_expr);
 		BUILD_RULE(varDecl, decl_expr);
@@ -139,8 +141,6 @@ namespace parser {
 		BUILD_RULE(factor, base_expr_node);
 		BUILD_RULE(intLiteral, std::string);
 		BUILD_RULE(quotedString, std::string);
-		//const x3::rule<class varNameDotExpression, std::vector<std::string>>  		varNameDotExpression = "varNameDotExpression";
-
 		BUILD_RULE(typeName, std::string);
 		BUILD_RULE(udfType, udf_type);
 		
@@ -239,8 +239,6 @@ namespace parser {
 			>> ';'
 			;
 
-		//const auto varNameDotExpression_def = *(varName % '.');
-
 		const auto varName_def = x3::lexeme[x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9'")];
 		const auto intLiteral_def = +x3::char_("0-9");
 		const auto value_def = (varName | intLiteral);
@@ -274,7 +272,6 @@ namespace parser {
 			ifExpr,
 			whileLoop,
 			varName,
-			//varNameDotExpression,
 			varDef,
 			varDecl,
 			varAssign,

@@ -14,6 +14,8 @@
 
 namespace marklar {
 
+	/* This is a visitor that walks the AST and for each node will generate the LLVM IR.
+	 */
 	class ast_codegen : public boost::static_visitor<llvm::Value*> {
 	public:
 		using symbolValue_t = std::map<std::string, llvm::Value*>;
